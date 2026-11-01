@@ -15,7 +15,7 @@ const deckHash = fs.readdirSync(path.join(root, "deck")).map((f) => read("deck/"
 const version = crypto.createHash("sha256").update(js + css + deckHash).digest("hex").slice(0, 10);
 const e = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
-const html = `<!doctype html><html lang="es"><head><meta charset="utf-8">
+const html = `<!doctype html><html lang="de"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>${e(cfg.name)}</title><meta name="description" content="${e(cfg.beschreibung || "")}">
 <meta name="theme-color" content="${e(cfg.hintergrund)}">
@@ -28,13 +28,13 @@ const html = `<!doctype html><html lang="es"><head><meta charset="utf-8">
 <script>if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js");</script>
 </body></html>`;
 
-const manifest = { name: cfg.name, short_name: cfg.name, lang: "es", start_url: "./", scope: "./", display: "standalone",
+const manifest = { name: cfg.name, short_name: cfg.name, lang: "de", start_url: "./", scope: "./", display: "standalone",
   background_color: cfg.hintergrund, theme_color: cfg.hintergrund,
   icons: [{ src: "icons/icon-192.png", sizes: "192x192", type: "image/png" }, { src: "icons/icon-512.png", sizes: "512x512", type: "image/png" },
     { src: "icons/icon-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" }] };
 // Offline: immer zuerst frisch aus dem Netz (Updates kommen sofort an), sonst aus dem Speicher. /api/ nie aus dem Speicher.
 const sw = `const CACHE = "${cfg.id}-${version}";
-const SHELL = ["./", "index.html", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png", "fonts/inter-latin.woff2", "deck/vocab.json", "deck/frases.json", "deck/gram.json"];
+const SHELL = ["./", "index.html", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png", "fonts/inter-latin.woff2", "deck/kana.json", "deck/vocab.json", "deck/frases.json", "deck/kanji.json", "deck/gram.json"];
 self.addEventListener("install", (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener("fetch", (e) => {

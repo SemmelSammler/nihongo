@@ -2,10 +2,12 @@
 const path = require("path"); let fehler = 0;
 const ok = (c, t) => { console.log((c ? "✓ " : "✗ ") + t); if (!c) fehler++; };
 globalThis.FSRS = require("ts-fsrs"); require(path.join(__dirname, "../app/lernen.js")); const L = globalThis.LERNEN;
-const W = { 1: "uno", 16: "dieciséis", 21: "veintiuno", 22: "veintidós", 47: "cuarenta y siete", 60: "sesenta", 70: "setenta", 100: "cien", 101: "ciento uno", 115: "ciento quince", 500: "quinientos", 700: "setecientos", 999: "novecientos noventa y nueve",
-  1000: "mil", 1200: "mil doscientos", 2100: "dos mil cien", 21000: "veintiún mil", 15350: "quince mil trescientos cincuenta", 101000: "ciento un mil" };
-for (const [n, w] of Object.entries(W)) ok(L.palabras(+n) === w, n + " = " + L.palabras(+n));
-ok(L.palabras(21, true) === "veintiún" && L.palabras(31, true) === "treinta y un", "Kurzform vor Nomen: veintiún / treinta y un");
+// Japanische Zahlen-Lesungen (Lautwechsel bei 300/600/800/3000/8000, Zehntausender)
+const Y = { 47: "よんじゅうなな", 19: "じゅうきゅう", 100: "ひゃく", 300: "さんびゃく", 600: "ろっぴゃく", 800: "はっぴゃく", 1000: "せん", 3000: "さんぜん", 8000: "はっせん",
+  10000: "いちまん", 12000: "いちまんにせん", 36500: "さんまんろくせんごひゃく", 110: "ひゃくじゅう" };
+for (const [n, w] of Object.entries(Y)) ok(L.yomi(+n) === w, n + " = " + L.yomi(+n));
+const H = { 1: "ついたち", 4: "よっか", 8: "ようか", 20: "はつか", 24: "にじゅうよっか", 11: "じゅういちにち", 14: "じゅうよっか" };
+for (const [n, w] of Object.entries(H)) ok(L.hiYomi(+n) === w, "der " + n + ". = " + L.hiYomi(+n));
 // FSRS: Lo sé wächst, Otra vez setzt zurück
 let t = new Date("2026-11-01T08:00:00Z"), a = null, tage = [];
 for (let i = 0; i < 4; i++) { a = L.answer(a, true, t); tage.push(a[3]); t = new Date(a[0]); }
@@ -22,7 +24,7 @@ ok(!L.pruefe("tenemo", "tenemos").ok, "falsch bleibt falsch");
 // Zahlen-Fragen: immer 4 verschiedene Antworten, richtige dabei
 let schlecht = [];
 for (const k of L.NUM) for (let s = 1; s < 400; s++) { const q = L.frageNum(k, s); if (q.options.length !== 4 || new Set(q.options).size !== 4 || !q.options.includes(q.ok) || /undefined|NaN/.test(q.say + q.back + q.options.join())) schlecht.push(k + "#" + s + " " + JSON.stringify(q)); }
-ok(!schlecht.length, "Zahlen: 8 Kategorien × 400 Fragen, je 4 verschiedene Antworten" + (schlecht.length ? " – " + schlecht.length + " Fehler, z. B. " + schlecht[0] : ""));
+ok(!schlecht.length, "Zahlen: " + L.NUM.length + " Kategorien × 400 Fragen, je 4 verschiedene Antworten" + (schlecht.length ? " – " + schlecht.length + " Fehler, z. B. " + schlecht[0] : ""));
 for (const k of L.NUM) { const q = L.frageNum(k, 7); console.log("   " + k + ": „" + q.say + "“ → " + q.ok + "  [" + q.options.join(" | ") + "]"); }
 // ---------- Statistik: 120 Tage Lernen simulieren und auf Stimmigkeit prüfen ----------
 {
@@ -59,7 +61,7 @@ for (const k of L.NUM) { const q = L.frageNum(k, 7); console.log("   " + k + ": 
   const z = {}; z[L.tag(heute)] = { r: { vocab: [1, 1] } }; const alt30 = new Date(heute); alt30.setDate(heute.getDate() - 29); z[L.tag(alt30)] = { r: { vocab: [1, 0] } }; const alt31 = new Date(heute); alt31.setDate(heute.getDate() - 30); z[L.tag(alt31)] = { r: { vocab: [5, 0] } };
   const r30 = L.retencion(z, null, heute); ok(r30.b === 2, "Statistik: Retención nimmt genau 30 Tage (heute + 29)");
   const w = L.wochen(st.tage, heute); ok(w.length === 8 && w[7].kw === L.kw(heute), "Statistik: 8 Wochen, letzte = aktuelle Kalenderwoche (KW " + w[7].kw + ")");
-  ok(L.nivel(499) === "A1" && L.nivel(500) === "A2" && L.nivel(1500) === "B1", "Statistik: Niveau-Grenzen 500 → A2, 1.500 → B1");
+  ok(L.nivel(799) === "< N5" && L.nivel(800) === "N5" && L.nivel(1500) === "N4", "Statistik: Niveau-Grenzen 800 → N5, 1.500 → N4");
   console.log("   Simulation: " + Object.keys(st.k).length + " Karten, " + domJetzt + " dominadas, Wochen: " + w.map((x) => x.n).join(" "));
 }
 console.log(fehler ? "\n" + fehler + " Fehler" : "\nLern-Logik in Ordnung."); process.exit(fehler ? 1 : 0);

@@ -133,6 +133,20 @@ p { margin: 0; }
 .fertig-t { font-size: var(--t-xxl); font-weight: var(--w-b); }
 .fertig p { line-height: 1.5; }
 
+/* Japanisch: große Zeichen, Furigana, Romaji, Lücke */
+.ja { font-family: var(--font-ja); }
+.ja.gross { font-size: 34px; font-weight: var(--w-m); line-height: 1.5; }
+.zeichen { font-family: var(--font-ja); font-size: 88px; line-height: 1.1; text-align: center; font-weight: var(--w-n); }
+.front.satz .ja { font-size: var(--t-xl); line-height: 2; font-weight: var(--w-n); }
+ruby rt { font-size: 0.45em; color: var(--muted); font-weight: var(--w-n); }
+.romaji { display: block; font-size: var(--t-m); color: var(--muted); font-weight: var(--w-n); letter-spacing: .01em; margin-top: var(--s1); }
+.luecke { color: var(--accent-ink); font-weight: var(--w-b); }
+.treffer { color: var(--accent-ink); font-weight: var(--w-b); }
+.formname { font-size: var(--t-l); font-weight: var(--w-b); color: var(--accent-ink); }
+.optionen.ja .opt { font-family: var(--font-ja); font-size: var(--t-xl); font-weight: var(--w-m); }
+.modo.gesperrt { opacity: .75; }
+.modo.gesperrt .btn { flex: none; }
+
 /* Errores */
 .unter-h1 { margin-top: calc(-1 * var(--s2)); }
 .fehler { gap: 6px; }

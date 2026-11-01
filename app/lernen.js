@@ -32,68 +32,60 @@
     return { ok: false };
   }
 
-  /* ---------- Zahlen in Worten (Lateinamerika) ---------- */
-  var U = ["cero", "uno", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho", "nueve", "diez", "once", "doce", "trece", "catorce", "quince", "dieciséis", "diecisiete", "dieciocho", "diecinueve",
-    "veinte", "veintiuno", "veintidós", "veintitrés", "veinticuatro", "veinticinco", "veintiséis", "veintisiete", "veintiocho", "veintinueve"];
-  var Z = { 3: "treinta", 4: "cuarenta", 5: "cincuenta", 6: "sesenta", 7: "setenta", 8: "ochenta", 9: "noventa" };
-  var H = { 1: "ciento", 2: "doscientos", 3: "trescientos", 4: "cuatrocientos", 5: "quinientos", 6: "seiscientos", 7: "setecientos", 8: "ochocientos", 9: "novecientos" };
-  function bis99(n) { return n < 30 ? U[n] : Z[Math.floor(n / 10)] + (n % 10 ? " y " + U[n % 10] : ""); }
-  function bis999(n) { if (n === 100) return "cien"; var h = Math.floor(n / 100), r = n % 100; return (h ? H[h] + (r ? " " : "") : "") + (r || !h ? bis99(r) : ""); }
-  function apokope(s) { return s.replace(/veintiuno$/, "veintiún").replace(/uno$/, "un"); }
-  // un = Kurzform vor Hauptwort/„mil“ (un peso, veintiún pesos)
-  function palabras(n, vorNomen) {
-    var k = Math.floor(n / 1000), r = n % 1000, s;
-    if (!k) s = bis999(n);
-    else s = (k === 1 ? "mil" : apokope(bis999(k)) + " mil") + (r ? " " + bis999(r) : "");
-    return vorNomen ? apokope(s) : s;
+  /* ---------- Japanische Zahlen, Uhrzeiten, Daten, Zählwörter (Lesungen in Hiragana) ---------- */
+  var E = ["", "いち", "に", "さん", "よん", "ご", "ろく", "なな", "はち", "きゅう"];
+  var HY = ["", "ひゃく", "にひゃく", "さんびゃく", "よんひゃく", "ごひゃく", "ろっぴゃく", "ななひゃく", "はっぴゃく", "きゅうひゃく"];
+  var SE = ["", "せん", "にせん", "さんぜん", "よんせん", "ごせん", "ろくせん", "ななせん", "はっせん", "きゅうせん"];
+  function bis9999(n) {
+    var s = Math.floor(n / 1000), h = Math.floor(n / 100) % 10, z = Math.floor(n / 10) % 10, e = n % 10;
+    return SE[s] + HY[h] + (z ? (z > 1 ? E[z] : "") + "じゅう" : "") + E[e];
   }
+  // Lesung einer Zahl 0 … 99.999.999 (いちまん, さんびゃく, はっせん …)
+  function yomi(n) {
+    if (n === 0) return "ゼロ";
+    var man = Math.floor(n / 10000), r = n % 10000;
+    return (man ? bis9999(man) + "まん" : "") + (r ? bis9999(r) : "");
+  }
+  var JI = ["", "いちじ", "にじ", "さんじ", "よじ", "ごじ", "ろくじ", "しちじ", "はちじ", "くじ", "じゅうじ", "じゅういちじ", "じゅうにじ"];
+  var FUN = { 0: "", 5: "ごふん", 10: "じゅっぷん", 15: "じゅうごふん", 20: "にじゅっぷん", 30: "はん", 40: "よんじゅっぷん", 45: "よんじゅうごふん", 50: "ごじゅっぷん" };
+  var GATSU = ["", "いちがつ", "にがつ", "さんがつ", "しがつ", "ごがつ", "ろくがつ", "しちがつ", "はちがつ", "くがつ", "じゅうがつ", "じゅういちがつ", "じゅうにがつ"];
+  var HI = { 1: "ついたち", 2: "ふつか", 3: "みっか", 4: "よっか", 5: "いつか", 6: "むいか", 7: "なのか", 8: "ようか", 9: "ここのか", 10: "とおか", 14: "じゅうよっか", 20: "はつか", 24: "にじゅうよっか", 17: "じゅうしちにち", 19: "じゅうくにち" };
+  function hiYomi(d) { return HI[d] || yomi(d) + "にち"; }
+  var TSU = ["", "ひとつ", "ふたつ", "みっつ", "よっつ", "いつつ", "むっつ", "ななつ", "やっつ", "ここのつ", "とお"];
+  var NIN = ["", "ひとり", "ふたり", "さんにん", "よにん", "ごにん", "ろくにん", "ななにん", "はちにん", "きゅうにん", "じゅうにん"];
 
-  /* ---------- Números y horas: Fragen werden erzeugt, nicht gespeichert ----------
-     Jede Kategorie ist eine FSRS-Karte „n:<kategorie>“ – schwache Kategorien kommen öfter. */
+  /* ---------- Zahlen & Zeit: Fragen werden erzeugt, nicht gespeichert ----------
+     Jede Kategorie ist eine FSRS-Karte „n:<kategorie>“. say = Text für die Sprachausgabe (ja-JP). */
   function zufall(seed) { var s = seed >>> 0 || 1; return function () { s ^= s << 13; s ^= s >>> 17; s ^= s << 5; return ((s >>> 0) % 1e6) / 1e6; }; }
   function rint(rnd, a, b) { return a + Math.floor(rnd() * (b - a + 1)); }
   function mischen(rnd, arr) { for (var i = arr.length - 1; i > 0; i--) { var j = Math.floor(rnd() * (i + 1)), t = arr[i]; arr[i] = arr[j]; arr[j] = t; } return arr; }
-  function vier(rnd, ok, falsche) {   // richtige + 3 verschiedene falsche, gemischt
-    var set = [ok]; falsche.forEach(function (x) { if (set.indexOf(x) === -1 && set.length < 4) set.push(x); });
-    return mischen(rnd, set);
-  }
-  function mx(n) { return n.toLocaleString("en-US"); }   // Mexiko: 1,200 (Komma als Tausender)
-  function tausch(n) { var s = String(n); return Number(s.split("").reverse().join("")); }
-  function zehnerFalle(n) { var z = Math.floor(n / 10) % 10, e = n % 10, out = []; if (z === 6) out.push(n + 10); if (z === 7) out.push(n - 10); return out; }
-  var HORA_TXT = { 1: "la una", 2: "las dos", 3: "las tres", 4: "las cuatro", 5: "las cinco", 6: "las seis", 7: "las siete", 8: "las ocho", 9: "las nueve", 10: "las diez", 11: "las once", 12: "las doce" };
-  function tageszeit(h24) { return h24 < 12 ? "de la mañana" : h24 < 20 ? "de la tarde" : "de la noche"; }
+  function vier(rnd, ok, falsche) { var set = [ok]; falsche.forEach(function (x) { if (set.indexOf(x) === -1 && set.length < 4) set.push(x); }); return mischen(rnd, set); }
+  function fmt(n) { return n.toLocaleString("en-US"); }
+  function tausch47(n) { return Number(String(n).replace(/[47]/g, function (c) { return c === "4" ? "7" : "4"; })); }   // よん ↔ なな
   function hm(h, m) { return h + ":" + String(m).padStart(2, "0"); }
-  var MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
-
   var NUM = [
-    { k: "n:0-30", gen: function (r) { var n = rint(r, 11, 29); return { say: palabras(n), ok: String(n), f: [n - 10, n + 10, n < 20 ? n + 4 : n - 4, n + 1].filter(function (x) { return x > 0; }).map(String), back: n + " · " + palabras(n), note: "11–15 sind eigene Wörter (once … quince), ab 16: dieci-, ab 21: veinti-." }; } },
-    { k: "n:decenas", gen: function (r) { var n = rint(r, 31, 99); if (n % 10 === 0) n++; return { say: palabras(n), ok: String(n), f: zehnerFalle(n).concat([tausch(n), n + 10, n - 10, n + 1]).filter(function (x) { return x > 9 && x < 100; }).map(String), back: n + " · " + palabras(n), note: "Typische Falle: sesenta (60) vs. setenta (70)." }; } },
-    { k: "n:cientos", gen: function (r) { var n = rint(r, 1, 9) * 100 + rint(r, 0, 99); return { say: palabras(n), ok: String(n), f: [n % 100 + (Math.floor(n / 100) === 5 ? 50 : 0) || n + 100, (Math.floor(n / 100) === 7 ? n + 200 : Math.floor(n / 100) === 9 ? n - 200 : n + 100), Number(String(Math.floor(n / 100)) + String(n % 100).padStart(2, "0").split("").reverse().join("")), n - 100].filter(function (x) { return x > 0 && x !== n; }).map(String), back: n + " · " + palabras(n), note: "quinientos (500), setecientos (700), novecientos (900) sind unregelmäßig." }; } },
-    { k: "n:miles", gen: function (r) { var a = rint(r, 1, 9), b = rint(r, 1, 9), n = a * 1000 + b * 100; return { say: palabras(n), ok: mx(n), f: [b * 1000 + a * 100, a * 1000 + b, a * 10000 + b * 1000, (a + 1) * 1000 + b * 100].filter(function (x) { return x !== n; }).map(mx), back: mx(n) + " · " + palabras(n), note: "mil = 1.000, ohne „un“. In Mexiko schreibt man 1,200 (Komma)." }; } },
-    { k: "n:precios", gen: function (r) { var n = rint(r, 2, 99) * 10 + [0, 5][rint(r, 0, 1)]; if (n % 100 === 1) n++; var p = n > 999 ? n : n; return { say: "Son " + palabras(p, true) + " pesos.", ok: "$" + mx(p), f: [tausch(p), p + 100, p - 100 > 0 ? p - 100 : p + 200, zehnerFalle(Math.floor(p / 10) * 10 + 0)[0] ? p + (Math.floor(p / 10) % 10 === 6 ? 100 : -100) : p + 10].filter(function (x) { return x > 0 && x !== p; }).map(function (x) { return "$" + mx(x); }), back: "$" + mx(p) + " · " + palabras(p, true) + " pesos", note: "So hörst du Preise an der Kasse." }; } },
-    { k: "n:horas", gen: function (r) {
-      var h24 = rint(r, 7, 22), mi = [0, 15, 30, 45, 10, 20, 50][rint(r, 0, 6)], h12 = h24 % 12 || 12, say;
-      if (mi === 45 || mi === 50) { var nx = (h24 + 1) % 24, n12 = nx % 12 || 12; say = (n12 === 1 ? "Es " : "Son ") + HORA_TXT[n12] + " menos " + (mi === 45 ? "cuarto" : "diez") + " " + tageszeit(nx); }
-      else say = (h12 === 1 ? "Es " : "Son ") + HORA_TXT[h12] + ({ 0: " en punto", 15: " y cuarto", 30: " y media", 10: " y diez", 20: " y veinte" })[mi] + " " + tageszeit(h24);
-      var ok = hm(h24, mi);
-      var f = [hm(h24 >= 12 ? h24 - 12 : h24 + 12, mi), hm(h24, mi === 45 ? 15 : mi === 15 ? 45 : mi === 30 ? 15 : (mi + 30) % 60), hm((h24 + 1) % 24, mi === 45 ? 15 : mi === 50 ? 10 : mi), hm(h24 - 1, mi)];
-      return { say: say + ".", ok: ok, f: f, back: ok + " · " + say.replace(/^(Es|Son) /, ""), note: "menos cuarto = Viertel vor (zur nächsten Stunde). Im Alltag zählt man bis 12: de la mañana / tarde / noche." };
+    { k: "n:zahlen", gen: function (r) { var n = rint(r, 11, 99); return { say: String(n), ok: String(n), f: [tausch47(n), n + 10, n - 10, Number(String(n).split("").reverse().join("")), n + 1].filter(function (x) { return x > 9 && x < 100 && x !== n; }).map(String), back: n + " · " + yomi(n), note: "4 = よん (auch し), 7 = なな (auch しち), 9 = きゅう (auch く)." }; } },
+    { k: "n:hyaku", gen: function (r) { var n = rint(r, 1, 9) * 100 + rint(r, 0, 9) * 10; return { say: String(n), ok: fmt(n), f: [n + 100, n - 100, tausch47(n), n * 10, Math.floor(n / 10)].filter(function (x) { return x >= 10 && x !== n; }).map(fmt), back: fmt(n) + " · " + yomi(n), note: "300 さんびゃく, 600 ろっぴゃく, 800 はっぴゃく – Lautwechsel." }; } },
+    { k: "n:man", gen: function (r) { var a = rint(r, 1, 9), b = rint(r, 1, 9), n = a * 10000 + b * 1000; return { say: String(n), ok: fmt(n), f: [a * 1000 + b * 100, a * 100000 + b * 10000, b * 10000 + a * 1000, (a + 1) * 10000 + b * 1000].filter(function (x) { return x !== n; }).map(fmt), back: fmt(n) + " · " + yomi(n), note: "Japanisch zählt in Zehntausendern: 万 (まん) = 10.000. 12.000 = いちまんにせん." }; } },
+    { k: "n:yen", gen: function (r) { var n = rint(r, 1, 99) * 100 + [0, 50][rint(r, 0, 1)]; return { say: n + "円です。", ok: "¥" + fmt(n), f: [n * 10, Math.round(n / 10), n + 1000, tausch47(n), n + 100].filter(function (x) { return x !== n && x >= 10; }).map(function (x) { return "¥" + fmt(x); }), back: "¥" + fmt(n) + " · " + yomi(n) + "えん", note: "So hörst du Preise an der Kasse: …えんです。" }; } },
+    { k: "n:jikan", gen: function (r) {
+      var h12 = rint(r, 1, 11), pm = rint(r, 0, 1), mi = [0, 30, 15, 45, 10, 20][rint(r, 0, 5)], h24 = pm ? (h12 % 12) + 12 : h12 % 12;
+      var sayM = mi === 0 ? "" : mi === 30 ? "半" : mi + "分", say = (pm ? "午後" : "午前") + h12 + "時" + sayM + "です。";
+      var ok = hm(h24, mi), alt = [4, 7, 9].indexOf(h12) >= 0 ? (h12 === 4 ? 7 : h12 === 7 ? 4 : 5) : h12 % 12 + 1;
+      return { say: say, ok: ok, f: [hm(pm ? h24 - 12 : h24 + 12, mi), hm(pm ? alt % 12 + 12 : alt % 12, mi), hm(h24, mi === 30 ? 0 : 30), hm(h24, mi === 15 ? 45 : 15)], back: ok + " · " + (pm ? "ごご" : "ごぜん") + JI[h12] + FUN[mi], note: "4 Uhr = よじ, 7 Uhr = しちじ, 9 Uhr = くじ. 午前 = vormittags, 午後 = nachmittags, 半 = halb." };
     } },
-    { k: "n:fechas", gen: function (r) { var d = rint(r, 2, 28), m = rint(r, 0, 11); var dd = function (a, b) { return a + "." + (b + 1) + "."; }; return { say: "Es el " + palabras(d) + " de " + MESES[m] + ".", ok: dd(d, m), f: [dd(d, (m + 1) % 12), dd(d < 10 ? d + 10 : d - 10, m), dd(d, (m + 11) % 12), dd(d + 1 > 28 ? d - 1 : d + 1, m)], back: dd(d, m) + " · el " + palabras(d) + " de " + MESES[m], note: "Datum: el + Zahl + de + Monat (der 1. heißt auch „el primero“)." }; } },
-    { k: "n:telefono", gen: function (r) {
-      var p = [rint(r, 10, 99), rint(r, 10, 99), rint(r, 10, 99), rint(r, 10, 99)], txt = function (a) { return a.join(" "); };
-      var swap = p.slice(); swap[1] = Math.floor(swap[1] / 10) === 6 ? swap[1] + 10 : Math.floor(swap[1] / 10) === 7 ? swap[1] - 10 : tausch(swap[1]) >= 10 ? tausch(swap[1]) : swap[1] + 10;
-      var b = p.slice(); b[3] = b[3] < 90 ? b[3] + 10 : b[3] - 10; var c = p.slice(); c[0] = tausch(c[0]) >= 10 && tausch(c[0]) !== c[0] ? tausch(c[0]) : c[0] + 1; var d = p.slice(); d[2] = d[2] > 10 ? d[2] - 1 : d[2] + 1;
-      return { say: "Mi número es " + p.map(function (x) { return palabras(x); }).join(", ") + ".", ok: txt(p), f: [txt(swap), txt(b), txt(c), txt(d)], back: txt(p), note: "Telefonnummern liest man in Zweiergruppen." };
-    } }
+    { k: "n:hiduke", gen: function (r) { var m = rint(r, 1, 12), d = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 14, 20, 24, rint(r, 11, 28)][rint(r, 0, 13)]; var dd = function (a, b) { return a + "." + b + "."; };
+      var conf = { 4: 8, 8: 4, 3: 6, 6: 3, 1: 7, 7: 1, 20: 2, 2: 20, 14: 24, 24: 14 };
+      return { say: m + "月" + d + "日です。", ok: dd(d, m), f: [dd(conf[d] || (d > 1 ? d - 1 : d + 1), m), dd(d, m % 12 + 1), dd(d, m === 4 ? 7 : m === 7 ? 4 : m === 9 ? 5 : (m + 10) % 12 + 1), dd(d > 10 ? d - 10 : d + 10, m)], back: dd(d, m) + " · " + GATSU[m] + hiYomi(d), note: "Tage 1–10, 14, 20, 24 haben eigene Lesungen: ついたち, ふつか, みっか, よっか (4.) ↔ ようか (8.), はつか (20.)." }; } },
+    { k: "n:tsu", gen: function (r) { var n = rint(r, 1, 10), conf = { 3: 6, 6: 3, 4: 8, 8: 4, 1: 2, 2: 1, 5: 9, 9: 5, 7: 10, 10: 7 }; return { say: TSU[n] + "ください。", ok: String(n), f: [conf[n], n % 10 + 1, n > 1 ? n - 1 : 3].map(String), back: n + " · " + TSU[n], note: "Allgemeines Zählen von Dingen: ひとつ, ふたつ, みっつ … – praktisch beim Bestellen." }; } },
+    { k: "n:nin", gen: function (r) { var n = rint(r, 1, 10), conf = { 4: 7, 7: 4, 1: 2, 2: 1, 3: 4, 9: 5, 5: 9 }; return { say: n + "人です。", ok: n + " P.", f: [conf[n] || n + 1, n % 10 + 1, n > 2 ? n - 2 : n + 2].map(function (x) { return x + " P."; }), back: n + " Personen · " + NIN[n], note: "1 Person ひとり, 2 ふたり, ab 3 …にん, aber 4 = よにん. Im Restaurant: 何名様ですか？ = Wie viele Personen?" }; } }
   ];
   function frageNum(kat, seed) {
     var g = NUM.filter(function (x) { return x.k === kat; })[0] || NUM[0], rnd = zufall(seed), q = g.gen(rnd);
     var falsche = q.f.filter(function (x, i, a) { return x !== q.ok && a.indexOf(x) === i; });
-    for (var i = 1; falsche.length < 3 && i < 30; i++) { var x = g.gen(zufall(seed * 31 + i)).ok; if (x !== q.ok && falsche.indexOf(x) === -1) falsche.push(x); }   // Ersatz, falls zu wenig
+    for (var i = 1; falsche.length < 3 && i < 30; i++) { var x = g.gen(zufall(seed * 31 + i)).ok; if (x !== q.ok && falsche.indexOf(x) === -1) falsche.push(x); }
     q.options = vier(rnd, q.ok, falsche); delete q.f; return q;
   }
-
 
   /* ---------- Statistik (Bauplan 5) – hier, damit sie ohne Browser getestet werden kann ----------
      Pro Tag: a = alle Abfragen [n, gewusst] je Modus, r = nur fällige Wiederholungen [n, gewusst] je Modus,
@@ -137,7 +129,8 @@
     }
     return out;
   }
-  function nivel(domVocab) { return domVocab < 500 ? "A1" : domVocab < 1500 ? "A2" : domVocab < 3000 ? "B1" : "B2"; }
-  root.LERNEN = { answer: answer, preview: preview, dominada: dominada, pruefe: pruefe, palabras: palabras, NUM: NUM.map(function (x) { return x.k; }), frageNum: frageNum, DIA: DIA, DOMINADA: DOMINADA,
+  // Grobe Schätzung nach Wortschatz für die JLPT-Stufen (N5 ≈ 800, N4 ≈ 1.500, N3 ≈ 3.700 Wörter)
+  function nivel(domVocab) { return domVocab < 800 ? "< N5" : domVocab < 1500 ? "N5" : domVocab < 3700 ? "N4" : "N3"; }
+  root.LERNEN = { answer: answer, preview: preview, dominada: dominada, pruefe: pruefe, yomi: yomi, hiYomi: hiYomi, NUM: NUM.map(function (x) { return x.k; }), frageNum: frageNum, DIA: DIA, DOMINADA: DOMINADA,
     tag: tag, kw: kw, buchen: buchen, racha: racha, retencion: retencion, wochen: wochen, nivel: nivel };
 })(typeof window !== "undefined" ? window : globalThis);

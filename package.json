@@ -12,7 +12,9 @@
     "tauri": "tauri"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2"
+    "@tauri-apps/cli": "^2",
+    "kuromoji": "^0.1.2",
+    "wanakana": "^5.3.1"
   },
   "dependencies": {
     "ts-fsrs": "^5.4.2"

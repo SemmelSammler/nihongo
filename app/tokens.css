@@ -37,7 +37,8 @@
   --r-s: 8px; --r-m: 12px; --r-btn: 14px; --r-l: 16px; --r-xl: 20px; --r-xxl: 24px; --r-pill: 999px;
 
   /* ---------- Schrift (Inter, liegt in app/fonts/) ---------- */
-  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font: "Inter", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-ja: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", "IPAGothic", sans-serif;   /* Inter hat keine japanischen Zeichen */
   --t-xs: 12px; --t-s: 13px; --t-ms: 14px; --t-m: 15px; --t-l: 17px; --t-xl: 20px; --t-stat: 26px; --t-xxl: 28px; --t-hero: 48px;
   --w-n: 400; --w-m: 500; --w-b: 600;
 

@@ -35,8 +35,13 @@ Japanisch für **Reise und Alltag**, ca. 15 Minuten pro Tag. Am Anfang vor allem
 | Tatoeba (jpn–deu) + Wort-Indizes | Sätze | CC BY 2.0 FR |
 | FrequencyWords (OpenSubtitles) | Reihenfolge nach Häufigkeit | CC BY-SA 4.0 |
 | WanaKana | Kana ↔ Romaji | MIT |
+| Wiktionary (Deutsch) über kaikki.org | prüft, welche deutsche Bedeutung zuerst kommt | CC BY-SA 4.0 |
+| kuromoji.js + IPADIC | Häufigkeit im Zusammenhang, Lesungen der Sätze, Prüfung der Verbformen | Apache 2.0 |
+
+Stand Daten (1.11.2026): 4.000 Wörter, ~2.650 Sätze, 60 Verben × 6 Formen, 600 Kanji, 208 Kana. Skript: `node tools/daten/bauen.cjs <rohdaten>`.
+Häufigkeit wird in allen japanischen Tatoeba-Sätzen gezählt (nicht aus Einzelwörtern), Verbklasse von kuromoji entscheidet zwischen gleich gelesenen Wörtern (いる = 居る, nicht 要る).
 
 ## 5. Offene Punkte
-- JMdict/KANJIDIC liegen auf `ftp.edrdg.org` → muss unter *Allowed domains* stehen.
+- JMdict/KANJIDIC: von `https://www.edrdg.org/pub/Nihongo/` (Allowed domains: `www.edrdg.org`).
 - Farbe/Icon: eigenes Icon, damit man Español und Nihongo auf dem Home-Bildschirm unterscheidet (Varianten zeigen).
 - Speicher-Schlüssel: `nihongo.daten.v1`, `nihongo.sync` – nach erstem echten Einsatz nie mehr ändern.

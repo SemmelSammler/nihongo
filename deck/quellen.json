@@ -1,0 +1,59 @@
+{
+ "stand": "2026-11-01",
+ "vocab": 4000,
+ "frases": 2665,
+ "gram": 360,
+ "verben": 60,
+ "kanji": 600,
+ "kana": 208,
+ "quellen": [
+  {
+   "name": "JMdict (EDRDG)",
+   "was": "Wörter, Lesungen, deutsche Bedeutungen",
+   "lizenz": "CC BY-SA 4.0",
+   "url": "https://www.edrdg.org/jmdict/j_jmdict.html"
+  },
+  {
+   "name": "KANJIDIC2 (EDRDG)",
+   "was": "Kanji, Lesungen, Häufigkeit",
+   "lizenz": "CC BY-SA 4.0",
+   "url": "https://www.edrdg.org/kanjidic/kanjd2index.html"
+  },
+  {
+   "name": "Tatoeba",
+   "was": "Satzpaare Japanisch–Deutsch",
+   "lizenz": "CC BY 2.0 FR",
+   "url": "https://tatoeba.org"
+  },
+  {
+   "name": "FrequencyWords (OpenSubtitles 2016), hermitdave",
+   "was": "Reihenfolge nach Häufigkeit",
+   "lizenz": "CC BY-SA 4.0",
+   "url": "https://github.com/hermitdave/FrequencyWords"
+  },
+  {
+   "name": "kuromoji.js + IPADIC",
+   "was": "Zerlegung und Lesungen der Sätze",
+   "lizenz": "Apache 2.0",
+   "url": "https://github.com/takuyaa/kuromoji.js"
+  },
+  {
+   "name": "WanaKana",
+   "was": "Kana ↔ Romaji",
+   "lizenz": "MIT",
+   "url": "https://github.com/WaniKani/WanaKana"
+  },
+  {
+   "name": "ts-fsrs",
+   "was": "Wiederholungs-Algorithmus FSRS",
+   "lizenz": "MIT",
+   "url": "https://github.com/open-spaced-repetition/ts-fsrs"
+  },
+  {
+   "name": "Inter (Rasmus Andersson)",
+   "was": "Schrift",
+   "lizenz": "SIL OFL 1.1",
+   "url": "https://rsms.me/inter/"
+  }
+ ]
+}

@@ -1,68 +1,9 @@
-/* Texte der Oberfläche: Spanisch (Standard) und Deutsch.
+/* Texte der Oberfläche: Deutsch (Standard) und Japanisch.
    Lerninhalte (Karten, Erklärungen) stehen NICHT hier und wechseln beim Umschalter nicht die Sprache.
    Platzhalter in geschweiften Klammern: {n}, {app} …  Jeder Schlüssel muss in beiden Sprachen da sein (prüft test/check.cjs). */
 (function (root) {
   "use strict";
   var TEXTE = {
-    es: {
-      // Tabs
-      tabHoy: "Hoy", tabAprender: "Aprender", tabStats: "Estadística", tabErrores: "Errores",
-      // Hoy
-      saludoManana: "Buenos días", saludoTarde: "Buenas tardes", saludoNoche: "Buenas noches",
-      hoy: "Hoy", aprox: "aprox. {n} min", tarjetas: "tarjetas", split: "{r} repasos · {n} nuevas",
-      empezar: "Empezar", racha: "Racha: {n} días", estaSemana: "esta semana", dias: "L M M J V S D",
-      // Aprender
-      nuevasPorDia: "Nuevas por día", hoyAprox: "hoy aprox. {n} min", menosNuevas: "Menos tarjetas nuevas", masNuevas: "Más tarjetas nuevas",
-      nuevasHint: "Más nuevas hoy = más repasos en las próximas semanas.", queQuieres: "¿Qué quieres practicar?",
-      pronto: "Llega en la próxima versión.",
-      tudecides: "tú decides", solo: "se corrige solo",
-      modoVocab: "Vocabulario", comoVocab: "palabra ↔ palabra, como Anki",
-      modoFrases: "Frases", comoFrases: "completar huecos, aprender del contexto",
-      modoGram: "Gramática", comoGram: "conjugar verbos",
-      modoNum: "Números y horas", comoNum: "escuchar y elegir: precios, horas, fechas",
-      modoChat: "Del chat", comoChat: "tus errores del coach",
-      // Estadística
-      kRacha: "días de racha", kRet: "retención (30 días)", kDom: "tarjetas dominadas", kNivel: "nivel estimado",
-      porCategoria: "Por categoría", retencion: "{p} retención", sinDatos: "sin datos",
-      catTxt: "{d} dominadas · {a} aprendiendo · {n} nuevas", numTxt: "{d} dominadas · {a} aprendiendo · ilimitadas (se generan solas)",
-      dominadas: "dominadas", aprendiendo: "aprendiendo", nuevas: "nuevas", porSemana: "Dominadas por semana",
-      // Errores
-      tusErrores: "Tus errores", erroresSub: "Del coach · cada error se vuelve tarjeta",
-      erroresVacio: "Aún no hay errores. Aparecen aquí cuando el coach los envía.",
-      // Ajustes
-      ajustes: "Ajustes", cerrar: "Cerrar", idioma: "Idioma", idiomaHint: "Mantén pulsado un botón o un título para ver la traducción.",
-      apariencia: "Apariencia", auto: "Auto", claro: "Claro", oscuro: "Oscuro",
-      sincro: "Sincronizar dispositivos", sincroIntro: "Sincroniza tu progreso cifrado entre el móvil y la computadora. Solo quien tiene la clave puede leerlo.",
-      configurar: "Configurar", conectarClave: "Conectar con clave", ultimaSincro: "Última sincronización: {t}", nuncaSincro: "Aún no sincronizado.",
-      error: "Error: {e}", sincroAhora: "Sincronizar ahora", mostrarClave: "Mostrar clave", ocultarClave: "Ocultar clave", desconectar: "Desconectar", servidor: "Servidor",
-      copia: "Copia de seguridad", copiaHint: "Tus datos están en este dispositivo. Una copia es un archivo que guardas en un lugar seguro.",
-      guardarCopia: "Guardar copia", cargarCopia: "Cargar copia", noGuardado: "No se pudo guardar: {e}",
-      // Ventanas
-      bienvenida: "Bienvenido a {app}", bienvenidaTxt: "¿Ya usas la app en otro dispositivo? Conéctate con tu clave.", vamos: "¡Vamos!",
-      conectarTxt: "La clave está en el otro dispositivo, en Ajustes → Sincronizar.", clave: "Clave", conectar: "Conectar", cancelar: "Cancelar",
-      conflicto: "Dos versiones distintas", conflictoTxt: "También hubo cambios en otro dispositivo. ¿Qué versión vale?",
-      conflictoDort: "La del otro dispositivo", conflictoHier: "Mantener la mía",
-      // Avisos
-      tConfigurado: "Configurado. ¡Guarda bien la clave!", tConectadoDatos: "Conectado. Tus datos están aquí.", tConectado: "Conectado.",
-      tAlDia: "Todo al día.", tNuevaVersion: "Nueva versión cargada.", tSincro: "Sincronización: {e}", tDesconectado: "Sincronización terminada en este dispositivo.",
-      tServidor: "Escribe la dirección del servidor.", tClave: "La clave tiene 20 caracteres, p. ej. ABCD-EFGH-…", tOtraVersion: "Versión del otro dispositivo cargada.",
-      tCopiaGuardada: "Copia guardada.", tCopiaDescarga: "Guardando copia (carpeta Descargas).", tCopiaCargada: "Copia cargada.",
-      tNoCargada: "No se cargó: {e}", tNoEsCopia: "Esto no es una copia de esta app.", tNoGuardada: "No se guardó: {e}",
-      // Sesión
-      terminar: "Terminar", posDe: "{m} · {p} de {t}", mixto: "Hoy", mostrar: "Mostrar respuesta", comprobar: "Comprobar", siguiente: "Siguiente",
-      otraVez: "Otra vez", vuelveHoy: "vuelve hoy", loSe: "Lo sé", enMin: "en {n} min", manana: "mañana", enDias: "en {n} días", enMeses: "en {n} meses",
-      correcto: "✓ Correcto", casi: "✗ Casi – correcto es:", acento: "Ojo con el acento: {f}", tuRespuesta: "Tu respuesta", escuchar: "Escuchar",
-      pQue: "¿Qué significa?", pCompleta: "Completa la frase", pEscribe: "Escribe la forma correcta", pEscucha: "Escucha y elige", pComo: "¿Cómo se dice?", pCorrige: "Corrige la frase",
-      listo: "¡Listo!", listoTxt: "{m} terminado. {n} tarjetas volvieron con „Otra vez“.", seguir: "Seguir: +10 nuevas", otroModo: "Elegir otro modo", volver: "Volver",
-      nadaHoy: "Nada pendiente por ahora. ¡Buen trabajo!", cargando: "Cargando tarjetas…", sinDeck: "No se pudieron cargar las tarjetas. Revisa la conexión.",
-      // Estadística (cálculo)
-      nivelTxt: "~{n}", estimacion: "estimación",
-      // Ajustes: buzón, importar, licencias
-      buzon: "Buzón del coach", buzonTxt: "Errores y palabras nuevas del proyecto „Español“ llegan aquí. Pega el token una vez.", token: "Token",
-      guardar: "Guardar", buscarAhora: "Buscar ahora", importar: "Importar", importarTxt: "Si el coach te da un bloque JSON, pégalo aquí.",
-      licencias: "Licencias y fuentes", tGuardado: "Guardado.", tNuevos: "{n} nuevos del coach.", tNadaNuevo: "Nada nuevo del coach.", tJsonMalo: "No es un JSON válido.",
-      tBuzon: "Buzón: {e}"
-    },
     de: {
       tabHoy: "Heute", tabAprender: "Lernen", tabStats: "Statistik", tabErrores: "Fehler",
       saludoManana: "Guten Morgen", saludoTarde: "Guten Tag", saludoNoche: "Guten Abend",
@@ -70,21 +11,25 @@
       empezar: "Starten", racha: "Serie: {n} Tage", estaSemana: "diese Woche", dias: "M D M D F S S",
       nuevasPorDia: "Neue pro Tag", hoyAprox: "heute ca. {n} Min.", menosNuevas: "Weniger neue Karten", masNuevas: "Mehr neue Karten",
       nuevasHint: "Mehr neue heute = deutlich mehr Wiederholungen in den Folgewochen.", queQuieres: "Was möchtest du üben?",
-      pronto: "Kommt in der nächsten Version.",
       tudecides: "du entscheidest", solo: "wird automatisch geprüft",
-      modoVocab: "Vokabeln", comoVocab: "Wort ↔ Wort, wie Anki",
+      modoKana: "Kana", comoKana: "Hiragana und Katakana lesen",
+      modoVocab: "Vokabeln", comoVocab: "Wort ↔ Bedeutung, wie Anki",
       modoFrases: "Sätze", comoFrases: "Lücken füllen, aus dem Zusammenhang lernen",
-      modoGram: "Grammatik", comoGram: "Verben konjugieren",
-      modoNum: "Zahlen & Uhrzeiten", comoNum: "hören und wählen: Preise, Uhrzeiten, Daten",
+      modoKanji: "Kanji", comoKanji: "Zeichen, Bedeutung und Lesung",
+      modoGram: "Grammatik", comoGram: "Verbformen wählen",
+      modoNum: "Zahlen & Zeit", comoNum: "hören und wählen: Preise, Uhrzeiten, Daten",
       modoChat: "Aus dem Chat", comoChat: "deine Fehler aus dem Coach",
-      kRacha: "Tage Serie", kRet: "Behalten (30 Tage)", kDom: "gelernte Karten", kNivel: "geschätztes Niveau",
-      porCategoria: "Nach Kategorie", retencion: "{p} behalten", sinDatos: "keine Daten",
+      kanjiGesperrt: "Kommt, wenn 80 % der Grund-Kana sitzen ({n} %).", freischalten: "Jetzt freischalten",
+      kRacha: "Tage Serie", kRet: "Behalten (30 Tage)", kDom: "gelernte Karten", kNivel: "Niveau",
+      porCategoria: "Nach Kategorie", retencion: "{p} behalten",
       catTxt: "{d} gelernt · {a} am Lernen · {n} neu", numTxt: "{d} gelernt · {a} am Lernen · unbegrenzt (werden erzeugt)",
-      dominadas: "gelernt", aprendiendo: "am Lernen", nuevas: "neu", porSemana: "Gelernt pro Woche",
+      dominadas: "gelernt", aprendiendo: "am Lernen", nuevas: "neu", porSemana: "Gelernt pro Woche", estimacion: "Schätzung", semana: "KW",
       tusErrores: "Deine Fehler", erroresSub: "Aus dem Coach · jeder Fehler wird zur Karte",
       erroresVacio: "Noch keine Fehler. Sie erscheinen hier, sobald der Coach sie schickt.",
       ajustes: "Einstellungen", cerrar: "Schließen", idioma: "Sprache", idiomaHint: "Halte einen Knopf oder eine Überschrift gedrückt, um die Übersetzung zu sehen.",
       apariencia: "Darstellung", auto: "Auto", claro: "Hell", oscuro: "Dunkel",
+      schrift: "Schrift auf den Karten", schriftKana: "Kana", schriftFuri: "Kanji + Lesung", schriftKanji: "Nur Kanji", romajiHilfe: "Romaji-Hilfe", an: "An", aus: "Aus",
+      schriftHint: "Am Anfang: Kana mit Romaji-Hilfe. Später Kanji mit Lesung darüber, zum Schluss nur Kanji.",
       sincro: "Abgleich zwischen Geräten", sincroIntro: "Gleiche deinen Fortschritt verschlüsselt zwischen Handy und Computer ab. Nur wer den Schlüssel hat, kann ihn lesen.",
       configurar: "Neu einrichten", conectarClave: "Mit Schlüssel verbinden", ultimaSincro: "Zuletzt abgeglichen: {t}", nuncaSincro: "Noch nicht abgeglichen.",
       error: "Fehler: {e}", sincroAhora: "Jetzt abgleichen", mostrarClave: "Schlüssel zeigen", ocultarClave: "Schlüssel verbergen", desconectar: "Trennen", servidor: "Server",
@@ -99,30 +44,88 @@
       tServidor: "Bitte die Server-Adresse eintragen.", tClave: "Der Schlüssel hat 20 Zeichen, z. B. ABCD-EFGH-…", tOtraVersion: "Stand vom anderen Gerät übernommen.",
       tCopiaGuardada: "Backup gespeichert.", tCopiaDescarga: "Backup wird gespeichert (Ordner Downloads).", tCopiaCargada: "Backup geladen.",
       tNoCargada: "Nicht geladen: {e}", tNoEsCopia: "Das ist kein Backup dieser App.", tNoGuardada: "Nicht gespeichert: {e}",
-      terminar: "Beenden", posDe: "{m} · {p} von {t}", mixto: "Heute", mostrar: "Antwort zeigen", comprobar: "Prüfen", siguiente: "Weiter",
+      terminar: "Beenden", posDe: "{m} · {p} von {t}", mixto: "Heute", mostrar: "Antwort zeigen", siguiente: "Weiter",
       otraVez: "Nochmal", vuelveHoy: "kommt heute wieder", loSe: "Gewusst", enMin: "in {n} Min.", manana: "morgen", enDias: "in {n} Tagen", enMeses: "in {n} Monaten",
-      correcto: "✓ Richtig", casi: "✗ Fast – richtig ist:", acento: "Achte auf den Akzent: {f}", tuRespuesta: "Deine Antwort", escuchar: "Anhören",
-      pQue: "Was bedeutet das?", pCompleta: "Ergänze den Satz", pEscribe: "Schreib die richtige Form", pEscucha: "Hör zu und wähle", pComo: "Wie sagt man das?", pCorrige: "Verbessere den Satz",
+      correcto: "✓ Richtig", casi: "✗ Leider falsch – richtig ist:", escuchar: "Anhören",
+      pKana: "Wie liest man das?", pKanaHoer: "Welches Zeichen hörst du?", pQue: "Was bedeutet das?", pCompleta: "Ergänze den Satz", pKanji: "Was bedeutet das Kanji?",
+      pGram: "Welche Form ist richtig?", pEscucha: "Hör zu und wähle", pComo: "Wie sagt man das?", pCorrige: "Verbessere den Satz",
+      f_masu: "höflich (-masu)", f_masen: "höflich verneint", f_mashita: "höflich Vergangenheit", f_te: "te-Form", f_ta: "einfache Vergangenheit", f_nai: "einfach verneint",
+      onLesung: "On-Lesung", kunLesung: "Kun-Lesung", beispiele: "Beispiele",
       listo: "Fertig!", listoTxt: "{m} erledigt. {n} Karten kamen mit „Nochmal“ zurück.", seguir: "Weiter: +10 neue", otroModo: "Anderen Modus wählen", volver: "Zurück",
       nadaHoy: "Gerade nichts fällig. Gut gemacht!", cargando: "Karten werden geladen …", sinDeck: "Die Karten konnten nicht geladen werden. Prüfe die Verbindung.",
-      nivelTxt: "~{n}", estimacion: "Schätzung",
-      buzon: "Briefkasten vom Coach", buzonTxt: "Fehler und neue Wörter aus dem Projekt „Español“ kommen hier an. Token einmal einfügen.", token: "Token",
+      nivelTxt: "~{n}",
+      buzon: "Briefkasten vom Coach", buzonTxt: "Fehler und neue Wörter aus dem Projekt „Nihongo“ kommen hier an. Token einmal einfügen.", token: "Token",
       guardar: "Speichern", buscarAhora: "Jetzt abholen", importar: "Importieren", importarTxt: "Wenn der Coach dir einen JSON-Block gibt, hier einfügen.",
       licencias: "Lizenzen und Quellen", tGuardado: "Gespeichert.", tNuevos: "{n} neue vom Coach.", tNadaNuevo: "Nichts Neues vom Coach.", tJsonMalo: "Das ist kein gültiges JSON.",
       tBuzon: "Briefkasten: {e}"
+    },
+    ja: {
+      tabHoy: "今日", tabAprender: "学習", tabStats: "統計", tabErrores: "間違い",
+      saludoManana: "おはようございます", saludoTarde: "こんにちは", saludoNoche: "こんばんは",
+      hoy: "今日", aprox: "約{n}分", tarjetas: "枚", split: "復習 {r} · 新規 {n}",
+      empezar: "始める", racha: "連続 {n}日", estaSemana: "今週", dias: "月 火 水 木 金 土 日",
+      nuevasPorDia: "1日の新しいカード", hoyAprox: "今日 約{n}分", menosNuevas: "新しいカードを減らす", masNuevas: "新しいカードを増やす",
+      nuevasHint: "新しいカードを増やすと、次の週の復習も増えます。", queQuieres: "何を練習しますか？",
+      tudecides: "自己判定", solo: "自動チェック",
+      modoKana: "かな", comoKana: "ひらがなとカタカナを読む",
+      modoVocab: "単語", comoVocab: "言葉 ↔ 意味",
+      modoFrases: "文", comoFrases: "空欄を埋める",
+      modoKanji: "漢字", comoKanji: "字・意味・読み方",
+      modoGram: "文法", comoGram: "動詞の形を選ぶ",
+      modoNum: "数字と時間", comoNum: "聞いて選ぶ：値段・時間・日付",
+      modoChat: "チャットから", comoChat: "コーチからの間違い",
+      kanjiGesperrt: "基本のかなを80%覚えたら始まります（今{n}%）。", freischalten: "今すぐ始める",
+      kRacha: "連続日数", kRet: "定着率（30日）", kDom: "覚えたカード", kNivel: "レベル",
+      porCategoria: "カテゴリー別", retencion: "定着率 {p}",
+      catTxt: "覚えた {d} · 学習中 {a} · 新規 {n}", numTxt: "覚えた {d} · 学習中 {a} · 無制限（自動生成）",
+      dominadas: "覚えた", aprendiendo: "学習中", nuevas: "新規", porSemana: "週ごとに覚えた数", estimacion: "推定", semana: "第",
+      tusErrores: "あなたの間違い", erroresSub: "コーチから · 間違いはカードになります",
+      erroresVacio: "まだ間違いはありません。コーチから届くとここに表示されます。",
+      ajustes: "設定", cerrar: "閉じる", idioma: "言語", idiomaHint: "ボタンや見出しを長押しすると翻訳が見られます。",
+      apariencia: "表示", auto: "自動", claro: "ライト", oscuro: "ダーク",
+      schrift: "カードの文字", schriftKana: "かな", schriftFuri: "漢字＋ふりがな", schriftKanji: "漢字のみ", romajiHilfe: "ローマ字", an: "オン", aus: "オフ",
+      schriftHint: "最初はかなとローマ字、次にふりがな付きの漢字、最後は漢字だけ。",
+      sincro: "端末の同期", sincroIntro: "スマホとパソコンの進み具合を暗号化して同期します。鍵を持っている人だけが読めます。",
+      configurar: "設定する", conectarClave: "鍵で接続", ultimaSincro: "最終同期：{t}", nuncaSincro: "まだ同期していません。",
+      error: "エラー：{e}", sincroAhora: "今すぐ同期", mostrarClave: "鍵を表示", ocultarClave: "鍵を隠す", desconectar: "切断", servidor: "サーバー",
+      copia: "バックアップ", copiaHint: "データはこの端末にあります。バックアップは安全な場所に保存するファイルです。",
+      guardarCopia: "バックアップを保存", cargarCopia: "バックアップを読み込む", noGuardado: "保存できませんでした：{e}",
+      bienvenida: "{app}へようこそ", bienvenidaTxt: "ほかの端末ですでに使っていますか？鍵で接続してください。", vamos: "始めよう",
+      conectarTxt: "鍵はほかの端末の 設定 → 同期 にあります。", clave: "鍵", conectar: "接続", cancelar: "キャンセル",
+      conflicto: "2つのバージョン", conflictoTxt: "ほかの端末でも変更がありました。どちらを使いますか？",
+      conflictoDort: "ほかの端末の方", conflictoHier: "この端末の方",
+      tConfigurado: "設定しました。鍵を大切に保管してください！", tConectadoDatos: "接続しました。データが届きました。", tConectado: "接続しました。",
+      tAlDia: "最新です。", tNuevaVersion: "新しいデータを読み込みました。", tSincro: "同期：{e}", tDesconectado: "この端末の同期を終了しました。",
+      tServidor: "サーバーのアドレスを入力してください。", tClave: "鍵は20文字です（例：ABCD-EFGH-…）。", tOtraVersion: "ほかの端末のデータを使います。",
+      tCopiaGuardada: "バックアップを保存しました。", tCopiaDescarga: "バックアップを保存中（ダウンロード）。", tCopiaCargada: "バックアップを読み込みました。",
+      tNoCargada: "読み込めませんでした：{e}", tNoEsCopia: "このアプリのバックアップではありません。", tNoGuardada: "保存できませんでした：{e}",
+      terminar: "終了", posDe: "{m} · {p} / {t}", mixto: "今日", mostrar: "答えを見る", siguiente: "次へ",
+      otraVez: "もう一度", vuelveHoy: "今日また出ます", loSe: "わかった", enMin: "{n}分後", manana: "明日", enDias: "{n}日後", enMeses: "{n}か月後",
+      correcto: "✓ 正解", casi: "✗ 残念 – 正しくは：", escuchar: "聞く",
+      pKana: "どう読みますか？", pKanaHoer: "どの字が聞こえますか？", pQue: "意味は？", pCompleta: "文を完成させてください", pKanji: "この漢字の意味は？",
+      pGram: "正しい形はどれ？", pEscucha: "聞いて選んでください", pComo: "どう言いますか？", pCorrige: "文を直してください",
+      f_masu: "ます形", f_masen: "ません形", f_mashita: "ました形", f_te: "て形", f_ta: "た形", f_nai: "ない形",
+      onLesung: "音読み", kunLesung: "訓読み", beispiele: "例",
+      listo: "終わり！", listoTxt: "{m}が終わりました。「もう一度」は{n}枚でした。", seguir: "続ける：新しい10枚", otroModo: "ほかのモードを選ぶ", volver: "戻る",
+      nadaHoy: "今は復習するカードがありません。よくできました！", cargando: "カードを読み込み中…", sinDeck: "カードを読み込めませんでした。接続を確認してください。",
+      nivelTxt: "~{n}",
+      buzon: "コーチからのポスト", buzonTxt: "プロジェクト「Nihongo」からの間違いや新しい言葉がここに届きます。トークンを一度入力してください。", token: "トークン",
+      guardar: "保存", buscarAhora: "今すぐ受け取る", importar: "インポート", importarTxt: "コーチから JSON をもらったら、ここに貼り付けてください。",
+      licencias: "ライセンスと出典", tGuardado: "保存しました。", tNuevos: "コーチから新しく{n}件。", tNadaNuevo: "コーチからの新着はありません。", tJsonMalo: "正しい JSON ではありません。",
+      tBuzon: "ポスト：{e}"
     }
   };
-  var SPRACHEN = ["es", "de"];
-  var lang = "es";
+  var SPRACHEN = ["de", "ja"];
+  var lang = "de";
   function fmt(s, v) { return String(s).replace(/\{(\w+)\}/g, function (m, k) { return v && v[k] != null ? v[k] : m; }); }
-  function text(l, key, v) { var d = TEXTE[l] || TEXTE.es; return fmt(d[key] != null ? d[key] : (TEXTE.es[key] != null ? TEXTE.es[key] : key), v); }
+  function text(l, key, v) { var d = TEXTE[l] || TEXTE.de; return fmt(d[key] != null ? d[key] : (TEXTE.de[key] != null ? TEXTE.de[key] : key), v); }
   root.I18N = {
     TEXTE: TEXTE, SPRACHEN: SPRACHEN,
     get lang() { return lang; },
-    set: function (l) { lang = SPRACHEN.indexOf(l) !== -1 ? l : "es"; },
-    other: function () { return lang === "es" ? "de" : "es"; },
+    set: function (l) { lang = SPRACHEN.indexOf(l) !== -1 ? l : "de"; },
+    other: function () { return lang === "de" ? "ja" : "de"; },
     t: function (key, v) { return text(lang, key, v); },
-    alt: function (key, v) { return text(lang === "es" ? "de" : "es", key, v); },   // Übersetzung für das Lang-Drücken
-    locale: function () { return lang === "es" ? "es-MX" : "de-DE"; }
+    alt: function (key, v) { return text(lang === "de" ? "ja" : "de", key, v); },   // Übersetzung für das Lang-Drücken
+    locale: function () { return lang === "ja" ? "ja-JP" : "de-DE"; }
   };
 })(typeof window !== "undefined" ? window : globalThis);

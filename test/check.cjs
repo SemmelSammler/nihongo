@@ -18,15 +18,15 @@ scripts.forEach((s, i) => { try { new Function(s); ok(true, "Skript " + (i + 1) 
 
 // Lerninhalte vorhanden und Lern-Logik getestet
 const q = JSON.parse(fs.readFileSync(path.join(root, "deck/quellen.json"), "utf8"));
-ok(q.vocab >= 4000 && q.frases >= 2500 && q.verben >= 90, "Lerninhalte: " + q.vocab + " Wörter, " + q.frases + " Sätze, " + q.verben + " Verben");
-["vocab", "frases", "gram"].forEach((f) => ok(fs.existsSync(path.join(root, "web/deck", f + ".json")), "web/deck/" + f + ".json vorhanden"));
+ok(q.vocab >= 3500 && q.frases >= 2500 && q.verben >= 50 && q.kanji >= 500 && q.kana >= 200, "Lerninhalte: " + q.vocab + " Wörter, " + q.frases + " Sätze, " + q.verben + " Verben, " + q.kanji + " Kanji, " + q.kana + " Kana");
+["kana", "vocab", "frases", "kanji", "gram"].forEach((f) => ok(fs.existsSync(path.join(root, "web/deck", f + ".json")), "web/deck/" + f + ".json vorhanden"));
 try { execSync("node test/lernen.test.cjs", { cwd: root, stdio: "pipe" }); ok(true, "Lern-Logik (test/lernen.test.cjs)"); } catch (e) { ok(false, "Lern-Logik: " + String(e.stdout).split("\n").filter((x) => x.startsWith("✗")).join(" / ")); }
 
 // Texte: jeder Schlüssel in Spanisch UND Deutsch
 const ctx = {}; require("vm").runInNewContext(fs.readFileSync(path.join(root, "app/i18n.js"), "utf8"), { window: ctx });
-const es = Object.keys(ctx.I18N.TEXTE.es), de = Object.keys(ctx.I18N.TEXTE.de);
+const es = Object.keys(ctx.I18N.TEXTE.de), de = Object.keys(ctx.I18N.TEXTE.ja);
 const fehltDe = es.filter((k) => !de.includes(k)), fehltEs = de.filter((k) => !es.includes(k));
-ok(!fehltDe.length && !fehltEs.length, "Texte: alle " + es.length + " Schlüssel auf ES und DE" + (fehltDe.length || fehltEs.length ? " – fehlt: " + fehltDe.concat(fehltEs).join(", ") : ""));
+ok(!fehltDe.length && !fehltEs.length, "Texte: alle " + es.length + " Schlüssel auf DE und JA" + (fehltDe.length || fehltEs.length ? " – fehlt: " + fehltDe.concat(fehltEs).join(", ") : ""));
 const appJs = fs.readFileSync(path.join(root, "app/app.js"), "utf8");
 const benutzt = [...appJs.matchAll(/\b(?:tx|t|alt)\("(\w+)"/g)].map((m) => m[1]).filter((k) => !es.includes(k));
 ok(!benutzt.length, "Texte: kein Schlüssel im Code, der in i18n.js fehlt" + (benutzt.length ? " – " + [...new Set(benutzt)].join(", ") : ""));

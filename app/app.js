@@ -1,4 +1,4 @@
-/* Español – Spanisch lernen, ca. 15 Minuten am Tag. Bauplan: BAUPLAN.md, Prototyp: docs/prototyp/D.dc.html.
+/* Nihongo – Japanisch lernen, ca. 15 Minuten am Tag. Bauplan: BAUPLAN.md (abgeleitet aus der Spanisch-App Español).
    Aus der Vorlage übernommen: Speichern, Backup, Abgleich, Handy-Ansicht, Desktop-Anbindung.
    Lern-Logik (FSRS, Prüfen, Zahlen) steht in app/lernen.js, Texte in app/i18n.js, Lerninhalte in deck/. */
 (function () {
@@ -24,7 +24,7 @@
   //   k:      { kartenId: [due, stability, difficulty, tage, reps, lapses, state, last, steps] }
   //   tage:   { "2026-11-01": { a: { modus: [abfragen, gewusst] }, n: { modus: neueHeute }, x: { modus: extraNeue }, ms, c, d } }
   //   errores, extra: aus dem Briefkasten / Import
-  function leer() { return { version: 1, ajustes: { nuevas: 10 }, k: {}, tage: {}, errores: [], extra: [] }; }
+  function leer() { return { version: 1, ajustes: { nuevas: 10, schrift: "kana", romaji: true }, k: {}, tage: {}, errores: [], extra: [] }; }
   var state = (function () { try { return JSON.parse(localStorage.getItem(STORE)); } catch (e) { return null; } })();
   var neu = !state;
   if (!state) state = DEMO ? clone(DEMO) : leer();
@@ -34,7 +34,7 @@
   var ui = (function () { try { return JSON.parse(localStorage.getItem(UI_STORE)) || {}; } catch (e) { return {}; } })();
   var TABS = [["hoy", "tabHoy"], ["aprender", "tabAprender"], ["stats", "tabStats"], ["errores", "tabErrores"]];
   if (!TABS.some(function (x) { return x[0] === ui.view; })) ui.view = "hoy";
-  I.set(ui.lang || "es");
+  I.set(ui.lang || "de");
   ui.modal = neu ? { type: "willkommen" } : null; ui.toast = null; ui.ses = null;
   var saveErr = null;
   function saveUi() { try { localStorage.setItem(UI_STORE, JSON.stringify({ view: ui.view, mode: ui.mode, lang: I.lang })); } catch (e) {} }
@@ -57,45 +57,56 @@
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function () { render(); });
 
   /* ================= Lerninhalte (deck/) ================= */
-  var DECK = { ok: false, err: null, vocab: [], frases: [], gram: [], quellen: null, byId: {} };
+  var TEILE = ["kana", "vocab", "frases", "kanji", "gram"];
+  var DECK = { ok: false, err: null, kana: [], vocab: [], frases: [], kanji: [], gram: [], quellen: null, byId: {} };
   function deckLaden() {
-    var teile = ["vocab", "frases", "gram"];
-    return Promise.all(teile.map(function (f) { return fetch("deck/" + f + ".json").then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }); }))
+    return Promise.all(TEILE.map(function (f) { return fetch("deck/" + f + ".json").then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }); }))
       .then(function (arr) {
-        teile.forEach(function (f, i) { DECK[f] = arr[i]; arr[i].forEach(function (x) { DECK.byId[x.id] = x; }); });
-        var gIdx = {}; DECK.gram.forEach(function (g) { gIdx[g.v] = g.de; });
+        TEILE.forEach(function (f, i) { DECK[f] = arr[i]; arr[i].forEach(function (x) { DECK.byId[x.id] = x; }); });
         DECK.ok = true; render();
       }, function (e) { DECK.err = e.message; render(); });
   }
   function quellenLaden() { fetch("deck/quellen.json").then(function (r) { return r.json(); }).then(function (q) { DECK.quellen = q; if (ui.modal && ui.modal.type === "licencias") render(); }, function () {}); }
 
-  /* ================= Lernmodi (Anteile der neuen Karten: Bauplan 5) ================= */
+  /* ================= Lernmodi (Anteile der neuen Karten) ================= */
   var MODOS = [
-    { k: "vocab", p: "v", name: "modoVocab", how: "comoVocab", check: "tudecides", share: 0.4, art: "flip", prompt: "pQue" },
-    { k: "frases", p: "f", name: "modoFrases", how: "comoFrases", check: "tudecides", share: 0.3, art: "flip", prompt: "pCompleta" },
-    { k: "gram", p: "g", name: "modoGram", how: "comoGram", check: "solo", share: 0.15, art: "typed", prompt: "pEscribe" },
-    { k: "num", p: "n", name: "modoNum", how: "comoNum", check: "solo", share: 0.15, art: "choice", prompt: "pEscucha" },
+    { k: "kana", p: "a", name: "modoKana", how: "comoKana", check: "solo", share: 0.3, art: "choice" },
+    { k: "vocab", p: "v", name: "modoVocab", how: "comoVocab", check: "tudecides", share: 0.3, art: "flip", prompt: "pQue" },
+    { k: "frases", p: "f", name: "modoFrases", how: "comoFrases", check: "tudecides", share: 0.1, art: "flip", prompt: "pCompleta" },
+    { k: "kanji", p: "k", name: "modoKanji", how: "comoKanji", check: "tudecides", share: 0.1, art: "flip", prompt: "pKanji" },
+    { k: "gram", p: "g", name: "modoGram", how: "comoGram", check: "solo", share: 0.1, art: "choice", prompt: "pGram" },
+    { k: "num", p: "n", name: "modoNum", how: "comoNum", check: "solo", share: 0.1, art: "choice", prompt: "pEscucha" },
     { k: "chat", p: "c", name: "modoChat", how: "comoChat", check: "tudecides", share: 0, art: "flip", prompt: "pComo" }
   ];
   var MODO = {}; MODOS.forEach(function (m) { MODO[m.k] = m; });
   function modoVon(id) { var p = id.charAt(0); return p === "x" ? "vocab" : MODOS.filter(function (m) { return m.p === p; })[0].k; }
   function tagHeute() { var d = heute(); if (!state.tage[d]) state.tage[d] = { a: {}, r: {}, n: {}, x: {}, ms: 0, c: 0, d: 0 }; return state.tage[d]; }
   function tagLesen() { return state.tage[heute()] || { a: {}, n: {}, x: {}, ms: 0, c: 0, d: 0 }; }
-  // Tageslimit auf die Modi verteilen, Summe bleibt genau gleich (größte Reste zuerst)
-  function anteil(k, n) {
-    var teil = MODOS.map(function (x) { return { k: x.k, f: Math.floor(n * x.share), r: n * x.share % 1 }; });
-    var rest = n - teil.reduce(function (s, x) { return s + x.f; }, 0);
-    teil.slice().sort(function (a, b) { return b.r - a.r; }).slice(0, rest).forEach(function (x) { x.f++; });
-    return teil.filter(function (x) { return x.k === k; })[0].f;
+
+  /* Kanji kommen, wenn 80 % der 92 Grund-Kana sitzen (Zustand „Wiederholung“) – oder per Knopf */
+  function kanaFortschritt() {
+    var basis = DECK.kana.filter(function (x) { return x.gr === "basis"; }), n = basis.filter(function (x) { var a = state.k[x.id]; return a && a[6] === 2; }).length;
+    return basis.length ? Math.round(n / basis.length * 100) : 0;
   }
+  function kanjiFrei() { return !!state.ajustes.kanjiFrei || kanaFortschritt() >= 80; }
   // Alle Karten eines Modus in Lern-Reihenfolge (Briefkasten-Wörter zuerst)
   function quelle(k) {
     var extra = state.extra.filter(function (e) { return modoVon(e.id) === k; });
     if (k === "vocab") return extra.concat(DECK.vocab);
-    if (k === "frases") return DECK.frases;
-    if (k === "gram") return DECK.gram;
+    if (k === "kanji") return kanjiFrei() ? DECK.kanji : [];
     if (k === "num") return L.NUM.map(function (id) { return { id: id }; });
-    return extra;   // chat
+    if (k === "chat") return extra;
+    return DECK[k] || [];
+  }
+  // Tageslimit auf die Modi verteilen; Modi ohne neue Karten (z. B. Kanji noch gesperrt) geben ihren Anteil ab
+  function anteil(k, n) {
+    var aktiv = MODOS.filter(function (x) { return x.share > 0 && quelle(x.k).some(function (c) { return !state.k[c.id]; }); });
+    var sum = aktiv.reduce(function (s, x) { return s + x.share; }, 0) || 1;
+    var teil = aktiv.map(function (x) { var v = n * x.share / sum; return { k: x.k, f: Math.floor(v), r: v % 1 }; });
+    var rest = n - teil.reduce(function (s, x) { return s + x.f; }, 0);
+    teil.slice().sort(function (a, b) { return b.r - a.r; }).slice(0, rest).forEach(function (x) { x.f++; });
+    var mein = teil.filter(function (x) { return x.k === k; })[0];
+    return mein ? mein.f : 0;
   }
   function karte(id) { return DECK.byId[id] || state.extra.filter(function (e) { return e.id === id; })[0] || (id.charAt(0) === "n" ? { id: id } : null); }
   function ohneLimit(id) { return id.charAt(0) === "c" || id.charAt(0) === "x"; }   // Briefkasten: kommt sofort, ohne Tageslimit
@@ -117,10 +128,10 @@
   }
   function zahlen(k) { return { r: faellig(k).length, n: neueListe(k).length }; }
   function minutosFuer(neuN, repN) {
-    // anfangs Schätzung (Bauplan 5), ab 50 Antworten aus der gemessenen Zeit pro Antwort
+    // anfangs Schätzung, ab 50 Antworten aus der gemessenen Zeit pro Antwort
     var ms = 0, c = 0; Object.keys(state.tage).forEach(function (d) { ms += state.tage[d].ms || 0; c += state.tage[d].c || 0; });
     if (c >= 50) return Math.round((neuN * 2.4 + repN) * ms / c / 60000);
-    return Math.round(neuN * 0.6 + repN * 0.25);
+    return Math.round(neuN * 0.5 + repN * 0.2);
   }
   function hoyZahlen() {
     var r = 0, n = 0, pro = {};
@@ -128,11 +139,32 @@
     return { r: r, n: n, pro: pro, min: minutosFuer(n, r) };
   }
 
+  /* ================= Japanische Schrift: Kana / Kanji + Furigana / nur Kanji, Romaji-Hilfe ================= */
+  function schrift() { return state.ajustes.schrift || "kana"; }
+  function romajiAn() { return state.ajustes.romaji !== false; }
+  // Ein Wort (w = Schreibweise, r = Lesung, ro = Romaji) nach Einstellung anzeigen
+  function jWort(w, r, ro, gross) {
+    var hatK = /[㐀-鿿々]/.test(w), html;
+    if (!hatK || schrift() === "kanji") html = esc(w);
+    else if (schrift() === "kana") html = esc(r);
+    else html = "<ruby>" + esc(w) + "<rt>" + esc(r) + "</rt></ruby>";
+    return '<span class="ja' + (gross ? " gross" : "") + '" lang="ja">' + html + "</span>" + (romajiAn() && ro ? '<span class="romaji">' + esc(ro) + "</span>" : "");
+  }
+  // Satz aus Segmenten [[Text, Lesung|null], …], Lücke an Stelle g
+  function jSatz(seg, g, zeigeLuecke, ro) {
+    var html = seg.map(function (x, i) {
+      if (i === g && !zeigeLuecke) return '<span class="luecke">＿＿</span>';
+      var t = x[1] && schrift() === "kana" ? esc(x[1]) : x[1] && schrift() === "furi" ? "<ruby>" + esc(x[0]) + "<rt>" + esc(x[1]) + "</rt></ruby>" : esc(x[0]);
+      return i === g ? '<b class="treffer">' + t + "</b>" : t;
+    }).join("");
+    return '<span class="ja" lang="ja">' + html + "</span>" + (romajiAn() && ro ? '<span class="romaji">' + esc(ro) + "</span>" : "");
+  }
+
   /* ================= Lernsitzung ================= */
-  function sitzungStart(modi, titel) {
+  function sitzungStart(modi) {
     var q = [];
     modi.forEach(function (k) { faellig(k).forEach(function (id) { q.push({ id: id }); }); neueListe(k).forEach(function (id) { q.push({ id: id, neu: true }); }); });
-    ui.ses = { modi: modi, titel: titel, q: q, done: 0, total: q.length, otra: 0, shown: false, res: null, typed: "", t0: Date.now() };
+    ui.ses = { modi: modi, q: q, done: 0, total: q.length, otra: 0, shown: false, res: null, t0: Date.now() };
     ui.view = "aprender"; window.scrollTo(0, 0); render(); autoSprechen();
   }
   function sitzungMehr() {
@@ -141,19 +173,47 @@
       var plus = s.modi.length === 1 ? 10 : anteil(k, 10); d.x[k] = (d.x[k] || 0) + plus;
       var liste = neueListe(k), vorher = s.total;
       liste.forEach(function (id) { if (!s.q.some(function (x) { return x.id === id; })) { s.q.push({ id: id, neu: true }); s.total++; } });
-      // Números y horas ist unbegrenzt: sind alle Kategorien schon bekannt, 10 Extra-Fragen aus bekannten Kategorien
+      // Zahlen & Zeit ist unbegrenzt: sind alle Kategorien schon bekannt, 10 Extra-Fragen aus bekannten Kategorien
       if (k === "num" && s.total === vorher) { var bekannt = L.NUM.filter(function (id) { return state.k[id]; }); for (var i = 0; i < plus && bekannt.length; i++) { s.q.push({ id: bekannt[Math.floor(Math.random() * bekannt.length)] }); s.total++; } }
     });
-    save(); s.shown = false; s.res = null; s.typed = ""; s.t0 = Date.now(); render(); autoSprechen();
+    save(); s.shown = false; s.res = null; s.t0 = Date.now(); render(); autoSprechen();
   }
   function aktuell() { return ui.ses && ui.ses.q[0]; }
+  function seed() { return (Date.now() ^ (Math.random() * 1e9)) >>> 0; }
+  function mischen(arr) { for (var i = arr.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), x = arr[i]; arr[i] = arr[j]; arr[j] = x; } return arr; }
+  // Kana, die leicht verwechselt werden – als falsche Antworten besonders lehrreich
+  var AEHNLICH = [["さ", "ち", "き"], ["ぬ", "め", "ね"], ["わ", "れ", "ね"], ["る", "ろ"], ["は", "ほ", "け"], ["い", "り", "こ"], ["あ", "お", "め"], ["シ", "ツ", "ン", "ソ"], ["ク", "ケ", "タ"], ["ウ", "ワ", "フ"], ["コ", "ユ", "ロ"], ["ス", "ヌ", "ヲ"], ["チ", "テ", "ナ"]];
+  function kanaFrage(item, c) {
+    if (!item.f) {
+      var gleich = DECK.kana.filter(function (x) { return x.s === c.s && x.id !== c.id && x.ro !== c.ro; });
+      var aehnlich = (AEHNLICH.filter(function (g) { return g.indexOf(c.z) >= 0; })[0] || []).filter(function (z) { return z !== c.z; })
+        .map(function (z) { return gleich.filter(function (x) { return x.z === z; })[0]; }).filter(Boolean);
+      var falsch = aehnlich.concat(mischen(gleich.filter(function (x) { return x.gr === c.gr; }))).filter(function (x, i, a) { return a.indexOf(x) === i; }).slice(0, 3);
+      var hoeren = state.k[c.id] && Math.random() < 0.5;   // bekannte Kana: mal Zeichen → Laut, mal Laut → Zeichen
+      item.f = { hoeren: hoeren, options: mischen([c].concat(falsch)).map(function (x) { return hoeren ? x.z : x.ro; }), ok: hoeren ? c.z : c.ro };
+    }
+    return { k: "kana", front: item.f.hoeren ? "" : c.z, prompt: item.f.hoeren ? "pKanaHoer" : "pKana", options: item.f.options, ok: item.f.ok, back: c.z + " · " + c.ro, say: c.z, opt: item.f.hoeren ? "ja" : "ro" };
+  }
+  function gramFrage(item, c) {
+    if (!item.f) {
+      var andere = DECK.gram.filter(function (x) { return x.v === c.v && x.f !== c.f; }).map(function (x) { return x.a; });
+      // typischer Fehler: る-Verb falsch konjugiert (Godan ↔ Ichidan)
+      var stamm = c.v.slice(0, -1), falscheKlasse = /^v5r/.test(c.kl) && c.f === "masu" ? stamm + "ます" : c.kl === "v1" && c.f === "masu" ? stamm + "ります" : null;
+      var falsch = mischen(andere).filter(function (x) { return x !== c.a; });
+      if (falscheKlasse && falscheKlasse !== c.a) falsch.unshift(falscheKlasse);
+      item.f = { options: mischen([c.a].concat(falsch.filter(function (x, i, a) { return a.indexOf(x) === i; }).slice(0, 3))), ok: c.a };
+    }
+    return { k: "gram", front: c.v, r: c.vr, sub: c.de, form: "f_" + c.f, options: item.f.options, ok: c.a, back: c.a + (c.ar !== c.a ? " (" + c.ar + ")" : ""), say: c.ar, opt: "ja" };
+  }
   function frage(item) {   // Inhalt der Karte für die Anzeige
     var id = item.id, k = modoVon(id), c = karte(id) || {};
-    if (k === "num") { if (!item.f) item.f = L.frageNum(id, (Date.now() ^ (Math.random() * 1e9)) >>> 0); return { k: k, front: "", back: item.f.back, note: item.f.note, say: item.f.say, options: item.f.options, ok: item.f.ok }; }
-    if (k === "vocab") return { k: k, front: c.es, back: c.de, note: c.n || "", say: c.es };
-    if (k === "frases") return { k: k, front: c.es + (c.lm ? " (" + c.lm + ")" : ""), back: c.gap, note: c.de, say: c.es.replace("____", c.gap), voll: c.es.replace("____", c.gap) };
-    if (k === "gram") return { k: k, front: c.v + " · " + c.p + " · " + c.t, sub: c.de, back: c.f, note: c.all, say: c.f };
-    return { k: k, front: c.de || c.wrong || "", korr: !c.de, back: c.es, note: c.note || "", say: c.es };   // chat
+    if (k === "num") { if (!item.f) item.f = L.frageNum(id, seed()); return { k: k, front: "", back: item.f.back, note: item.f.note, say: item.f.say, options: item.f.options, ok: item.f.ok, opt: "num" }; }
+    if (k === "kana") return kanaFrage(item, c);
+    if (k === "gram") return gramFrage(item, c);
+    if (k === "vocab") return { k: k, w: c.w, r: c.r || c.w, ro: c.ro, back: c.de, note: c.n || (c.k && c.k !== c.w ? c.k : ""), say: c.r || c.w };
+    if (k === "frases") return { k: k, seg: c.s, g: c.g, ro: c.ro, back: c.s[c.g][0], note: c.de, say: c.s.map(function (x) { return x[0]; }).join("") };
+    if (k === "kanji") return { k: k, kanji: c.k, back: c.de, on: c.on, kun: c.kun, bsp: c.bsp || [], say: (c.bsp && c.bsp[0] && c.bsp[0].r) || "" };
+    return { k: k, front: c.de || c.wrong || "", korr: !c.de, back: c.es, note: c.note || "", say: c.es };   // chat: es = richtige japanische Form
   }
   function antworten(ok) {
     var s = ui.ses, item = s.q[0]; if (!item) return;
@@ -161,7 +221,7 @@
     L.buchen(state, { id: id, k: modoVon(id), ok: ok, neu: !!item.neu && !item.gezaehlt, now: new Date(), ms: Date.now() - s.t0 });
     s.q.shift(); s.done++;
     if (!ok) { s.q.splice(Math.min(2, s.q.length), 0, { id: id, otra: true, gezaehlt: true }); s.total++; s.otra++; }   // kommt nach 2 anderen Karten wieder
-    s.shown = false; s.res = null; s.typed = ""; s.t0 = Date.now();
+    s.shown = false; s.res = null; s.t0 = Date.now();
     save(); render(); autoSprechen();
   }
   function intervall(ms) {
@@ -172,23 +232,23 @@
     return t("enMeses", { n: Math.round(tg / 30) });
   }
 
-  /* ================= Sprechen (Web Speech API, es-MX) ================= */
+  /* ================= Sprechen (Web Speech API, ja-JP) ================= */
   var STIMME = null;
   function stimme() {
     if (STIMME || !window.speechSynthesis) return STIMME;
     var v = speechSynthesis.getVoices();
-    STIMME = ["es-MX", "es-US", "es-419"].map(function (l) { return v.filter(function (x) { return x.lang.replace("_", "-") === l; })[0]; }).filter(Boolean)[0] || v.filter(function (x) { return /^es/.test(x.lang); })[0] || null;
+    STIMME = v.filter(function (x) { return x.lang.replace("_", "-") === "ja-JP"; })[0] || v.filter(function (x) { return /^ja/.test(x.lang); })[0] || null;
     return STIMME;
   }
   if (window.speechSynthesis) speechSynthesis.addEventListener && speechSynthesis.addEventListener("voiceschanged", function () { STIMME = null; stimme(); });
   function sprechen(text) {
     try {
       if (!window.speechSynthesis || !text) return;
-      var u = new SpeechSynthesisUtterance(text.replace("____", "…")); u.lang = (stimme() && stimme().lang) || "es-MX"; if (stimme()) u.voice = stimme(); u.rate = 0.9;
+      var u = new SpeechSynthesisUtterance(text); u.lang = (stimme() && stimme().lang) || "ja-JP"; if (stimme()) u.voice = stimme(); u.rate = 0.9;
       speechSynthesis.cancel(); speechSynthesis.speak(u);
     } catch (e) {}
   }
-  function autoSprechen() { var it = aktuell(); if (it && modoVon(it.id) === "num") sprechen(frage(it).say); }
+  function autoSprechen() { var it = aktuell(); if (!it) return; var f = frage(it); if (f.k === "num" || (f.k === "kana" && !f.front)) sprechen(f.say); }
 
   /* ================= Statistik (Bauplan 5) ================= */
   function racha() { return L.racha(state.tage, new Date()); }
@@ -242,6 +302,7 @@
       '<div class="small muted"' + alt("queQuieres") + ">" + tx("queQuieres") + "</div>" +
       MODOS.map(function (m) {
         var x = z.pro[m.k];
+        if (m.k === "kanji" && !kanjiFrei()) return '<div class="modo gesperrt"><span><span class="n">' + tx(m.name) + '</span><span class="how">' + tx("kanjiGesperrt", { n: DECK.ok ? kanaFortschritt() : 0 }) + '</span></span><button class="btn klein" data-act="kanjiFrei"' + alt("freischalten") + ">" + tx("freischalten") + "</button></div>";
         return '<button class="modo" data-act="modo" data-m="' + m.k + '"' + alt(m.name) + '><span><span class="n">' + tx(m.name) + '</span><span class="how">' + tx(m.how) + '</span><span class="meta">' + tx("split", { r: x.r, n: x.n }) + " · " + tx(m.check) + '</span></span><span class="pill num">' + (x.r + x.n) + "</span></button>";
       }).join("");
   }
@@ -257,35 +318,38 @@
         '<button class="btn" data-act="terminar"' + alt("otroModo") + ">" + tx("otroModo") + "</button>";
     }
     var f = frage(item), m = MODO[f.k], body = "", aktion = "";
-    var prompt = f.k === "chat" && f.korr ? "pCorrige" : m.prompt;
-    var kartenKopf = '<div class="row mitte"><div class="row mitte" style="gap:var(--s2)"><span class="small muted"' + alt(prompt) + ">" + tx(prompt) + "</span>" + (item.otra ? '<span class="marke">otra vez</span>' : "") + "</div>" +
+    var prompt = f.prompt || (f.k === "chat" && f.korr ? "pCorrige" : m.prompt);
+    var kartenKopf = '<div class="row mitte"><div class="row mitte" style="gap:var(--s2)"><span class="small muted"' + alt(prompt) + ">" + tx(prompt) + "</span>" + (item.otra ? '<span class="marke">' + tx("otraVez") + "</span>" : "") + "</div>" +
       '<button class="iconbtn rund" data-act="hablar" aria-label="' + tx("escuchar") + '">' + ICON.laut + "</button></div>";
-    if (m.art === "choice") {
-      body = '<button class="hoeren" data-act="hablar">' + ICON.lautGross + "<span>" + tx("escuchar") + "</span></button>" +
-        '<div class="optionen">' + f.options.map(function (o) {
-          var cls = s.res ? (o === f.ok ? "opt richtig" : s.res.pick === o ? "opt falsch" : "opt") : "opt";
-          return '<button class="' + cls + ' num" data-act="pick" data-o="' + esc(o) + '"' + (s.res ? " disabled" : "") + ">" + esc(o) + "</button>";
-        }).join("") + "</div>";
-    } else {
-      body = '<div class="front" lang="' + (f.k === "chat" && !f.korr ? "de" : "es") + '">' + esc(f.front) + "</div>" + (f.sub ? '<div class="small muted">' + esc(f.sub) + "</div>" : "");
-      if (m.art === "typed") body += '<label class="field">' + tx("tuRespuesta") + '<input id="f-resp" lang="es" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done"' + (s.res ? " disabled" : "") + ' value="' + esc(s.typed) + '"></label>';
-    }
+    // Vorderseite
+    if (f.k === "kana") body = f.front ? '<div class="zeichen" lang="ja">' + esc(f.front) + "</div>" : '<button class="hoeren" data-act="hablar">' + ICON.lautGross + "<span>" + tx("escuchar") + "</span></button>";
+    else if (f.k === "num") body = '<button class="hoeren" data-act="hablar">' + ICON.lautGross + "<span>" + tx("escuchar") + "</span></button>";
+    else if (f.k === "gram") body = '<div class="front">' + jWort(f.front, f.r, "", true) + '</div><div class="small muted">' + esc(f.sub) + '</div><div class="formname"' + alt(f.form) + ">→ " + tx(f.form) + "</div>";
+    else if (f.k === "vocab") body = '<div class="front">' + jWort(f.w, f.r, f.ro, true) + "</div>";
+    else if (f.k === "frases") body = '<div class="front satz">' + jSatz(f.seg, f.g, s.shown, s.shown ? f.ro : "") + "</div>";
+    else if (f.k === "kanji") body = '<div class="zeichen" lang="ja">' + esc(f.kanji) + "</div>";
+    else body = '<div class="front" lang="' + (f.korr ? "ja" : "de") + '">' + esc(f.front) + "</div>";
+    // Antwortmöglichkeiten (antippen)
+    if (m.art === "choice") body += '<div class="optionen' + (f.opt === "ja" ? " ja" : "") + '">' + f.options.map(function (o) {
+      var cls = s.res ? (o === f.ok ? "opt richtig" : s.res.pick === o ? "opt falsch" : "opt") : "opt";
+      return '<button class="' + cls + ' num" lang="' + (f.opt === "ja" ? "ja" : "de") + '" data-act="pick" data-o="' + esc(o) + '"' + (s.res ? " disabled" : "") + ">" + esc(o) + "</button>";
+    }).join("") + "</div>";
+    // Rückseite
     if (s.shown || s.res) {
-      body += '<hr class="trenn">' + (s.res ? '<div class="' + (s.res.ok ? "ok-t" : "neg-t") + '">' + tx(s.res.ok ? "correcto" : "casi") + "</div>" : "") +
-        '<div class="back" lang="' + (f.k === "vocab" ? "de" : "es") + '">' + esc(f.back) + "</div>" +
-        (f.voll ? '<div class="small">' + esc(f.voll) + "</div>" : "") +
-        (s.res && s.res.akzent ? '<div class="small neg">' + tx("acento", { f: f.back }) + "</div>" : "") +
-        (f.note ? '<div class="small muted">' + esc(f.note) + "</div>" : "");
+      body += '<hr class="trenn">' + (s.res ? '<div class="' + (s.res.ok ? "ok-t" : "neg-t") + '">' + tx(s.res.ok ? "correcto" : "casi") + "</div>" : "");
+      if (f.k === "kanji") body += '<div class="back">' + esc(f.back || "") + '</div><div class="small"><span class="muted">' + tx("onLesung") + ":</span> " + esc(f.on || "–") + ' · <span class="muted">' + tx("kunLesung") + ":</span> " + esc(f.kun || "–") + "</div>" +
+        (f.bsp.length ? '<div class="small"><span class="muted">' + tx("beispiele") + ":</span> " + f.bsp.map(function (b) { return '<span lang="ja">' + esc(b.w) + "</span>（" + esc(b.r) + "）= " + esc(b.de); }).join(" · ") + "</div>" : "");
+      else if (f.k === "frases") body += '<div class="small">' + esc(f.note) + "</div>";
+      else body += '<div class="back" lang="' + (f.k === "vocab" ? "de" : "ja") + '">' + esc(f.back) + "</div>" + (f.note ? '<div class="small muted">' + esc(f.note) + "</div>" : "");
     }
     if (m.art === "flip" && !s.shown) aktion = '<button class="btn" data-act="mostrar"' + alt("mostrar") + ">" + tx("mostrar") + "</button>";
     if (m.art === "flip" && s.shown) aktion = '<div class="bewerten"><button class="rate otra" data-act="otra"' + alt("otraVez") + "><b>" + tx("otraVez") + "</b><span>" + tx("vuelveHoy") + '</span></button><button class="rate lose" data-act="lose"' + alt("loSe") + "><b>" + tx("loSe") + "</b><span>" + esc(intervall(L.preview(state.k[item.id], new Date()))) + "</span></button></div>";
-    if (m.art === "typed" && !s.res) aktion = '<button class="btn primary" data-act="comprobar"' + alt("comprobar") + ">" + tx("comprobar") + "</button>";
-    if (m.art !== "flip" && s.res) aktion = '<button class="btn" data-act="weiter"' + alt("siguiente") + ">" + tx("siguiente") + "</button>";
+    if (m.art === "choice" && s.res) aktion = '<button class="btn" data-act="weiter"' + alt("siguiente") + ">" + tx("siguiente") + "</button>";
     return kopf + '<section class="card lernkarte">' + kartenKopf + '<div class="inhalt">' + body + "</div></section>" + aktion;
   }
   function viewStats() {
     var ret = retencion(), dom = MODOS.reduce(function (s, m) { return s + kategorie(m.k).dom; }, 0), w = wochen(), max = Math.max.apply(null, w.map(function (x) { return x.n; }).concat([1]));
-    var tiles = [[String(racha()), "kRacha"], [pct(ret.a, ret.b), "kRet"], [String(dom), "kDom"], [t("nivelTxt", { n: nivel() }), "kNivel"]];
+    var tiles = [[String(racha()), "kRacha"], [pct(ret.a, ret.b), "kRet"], [String(dom), "kDom"], [/^</.test(nivel()) ? nivel() : t("nivelTxt", { n: nivel() }), "kNivel"]];
     return head("tabStats") +
       '<div class="tiles">' + tiles.map(function (s) { return '<div class="tile"><b class="num">' + esc(s[0]) + "</b><span" + alt(s[1]) + ">" + tx(s[1]) + (s[1] === "kNivel" ? " (" + tx("estimacion") + ")" : "") + "</span></div>"; }).join("") + "</div>" +
       '<section class="card klein"><div class="ttl"' + alt("porCategoria") + ">" + tx("porCategoria") + "</div>" +
@@ -297,16 +361,16 @@
       }).join("") +
       '<div class="legend"><span><i class="c-dom"></i>' + tx("dominadas") + '</span><span><i class="c-apr"></i>' + tx("aprendiendo") + '</span><span><i class="c-new"></i>' + tx("nuevas") + "</span></div></section>" +
       '<section class="card klein"><div class="ttl"' + alt("porSemana") + ">" + tx("porSemana") + '</div><div class="weeks">' +
-      w.map(function (x, j) { return '<div><span class="xs num">' + (x.n ? (x.n < 0 ? "−" + -x.n : x.n) : "") + '</span><i' + (j === 7 ? ' class="jetzt"' : "") + ' style="height:' + Math.round(Math.max(x.n, 0) / max * 80) + 'px"></i>' + (I.lang === "es" ? "S" : "KW") + x.kw + "</div>"; }).join("") + "</div></section>" +
+      w.map(function (x, j) { return '<div><span class="xs num">' + (x.n ? (x.n < 0 ? "−" + -x.n : x.n) : "") + '</span><i' + (j === 7 ? ' class="jetzt"' : "") + ' style="height:' + Math.round(Math.max(x.n, 0) / max * 80) + 'px"></i>' + tx("semana") + x.kw + "</div>"; }).join("") + "</div></section>" +
       // Erklärungen bleiben Deutsch (Bauplan 2)
-      '<div class="info">Gelernt (dominada) = nächste Wiederholung erst in 21+ Tagen. „Otra vez“ setzt eine Karte auf aprendiendo zurück. Retención = Anteil der fälligen Wiederholungen der letzten 30 Tage, die du gewusst hast (ohne neue Karten und ohne das Wiederholen nach „Otra vez“ – Ziel ist ca. 90 %). Gelernt pro Woche = Zuwachs minus vergessene Karten. Niveau = grobe Schätzung aus den gelernten Vokabeln (500 → A2, 1.500 → B1).</div>';
+      '<div class="info">Gelernt = nächste Wiederholung erst in 21+ Tagen. „Nochmal“ setzt eine Karte auf „am Lernen“ zurück. Behalten = Anteil der fälligen Wiederholungen der letzten 30 Tage, die du gewusst hast (ohne neue Karten und ohne das Wiederholen nach „Nochmal“ – Ziel ist ca. 90 %). Gelernt pro Woche = Zuwachs minus vergessene Karten. Niveau = grobe Schätzung aus den gelernten Vokabeln (JLPT: N5 ≈ 800, N4 ≈ 1.500, N3 ≈ 3.700 Wörter).</div>';
   }
   function viewErrores() {
     var liste = state.errores.slice().sort(function (a, b) { return a.fecha < b.fecha ? 1 : -1; });
     return head("tusErrores", null) + '<p class="small muted unter-h1"' + alt("erroresSub") + ">" + tx("erroresSub") + "</p>" +
       (liste.length ? liste.map(function (e) {
         var d = e.fecha ? new Date(e.fecha) : null;
-        return '<section class="card klein fehler"><div class="neg falsch-t" lang="es">' + esc(e.wrong || "") + '</div><div class="richtig-t" lang="es">' + esc(e.es) + '</div><div class="small muted">' + esc(e.note || "") + (d && !isNaN(d) ? " · " + esc(d.toLocaleDateString(I.locale(), { weekday: "short", day: "numeric", month: "numeric" })) : "") + "</div></section>";
+        return '<section class="card klein fehler"><div class="neg falsch-t" lang="ja">' + esc(e.wrong || "") + '</div><div class="richtig-t" lang="ja">' + esc(e.es) + '</div><div class="small muted">' + esc(e.note || "") + (d && !isNaN(d) ? " · " + esc(d.toLocaleDateString(I.locale(), { weekday: "short", day: "numeric", month: "numeric" })) : "") + "</div></section>";
       }).join("") : '<section class="card"><p class="leer">' + tx("erroresVacio") + "</p></section>");
   }
 
@@ -350,10 +414,14 @@
     var mode = ui.mode === "hell" || ui.mode === "dunkel" ? ui.mode : "system";
     return '<div class="kopf"><h2' + alt("ajustes") + ">" + tx("ajustes") + '</h2><button class="btn klein ghost" data-act="zu">' + tx("cerrar") + "</button></div>" +
       '<div class="feld"><span class="lab"' + alt("idioma") + ">" + tx("idioma") + '</span><div class="seg">' +
-      [["es", "Español"], ["de", "Deutsch"]].map(function (l) { return '<button class="' + (I.lang === l[0] ? "on" : "") + '" data-act="lang" data-l="' + l[0] + '">' + l[1] + "</button>"; }).join("") +
+      [["de", "Deutsch"], ["ja", "日本語"]].map(function (l) { return '<button class="' + (I.lang === l[0] ? "on" : "") + '" data-act="lang" data-l="' + l[0] + '">' + l[1] + "</button>"; }).join("") +
       '</div><p class="xs muted">' + tx("idiomaHint") + "</p></div>" +
       '<div class="feld"><span class="lab"' + alt("apariencia") + ">" + tx("apariencia") + '</span><div class="seg">' +
       [["system", "auto"], ["hell", "claro"], ["dunkel", "oscuro"]].map(function (m) { return '<button class="' + (mode === m[0] ? "on" : "") + '" data-act="mode" data-m="' + m[0] + '"' + alt(m[1]) + ">" + tx(m[1]) + "</button>"; }).join("") + "</div></div>" +
+      '<div class="feld"><span class="lab"' + alt("schrift") + ">" + tx("schrift") + '</span><div class="seg">' +
+      [["kana", "schriftKana"], ["furi", "schriftFuri"], ["kanji", "schriftKanji"]].map(function (x) { return '<button class="' + (schrift() === x[0] ? "on" : "") + '" data-act="schrift" data-s="' + x[0] + '"' + alt(x[1]) + ">" + tx(x[1]) + "</button>"; }).join("") +
+      '</div><div class="row mitte"><span class="small"' + alt("romajiHilfe") + ">" + tx("romajiHilfe") + '</span><div class="seg" style="min-width:140px">' +
+      [[true, "an"], [false, "aus"]].map(function (x) { return '<button class="' + (romajiAn() === x[0] ? "on" : "") + '" data-act="romaji" data-r="' + x[0] + '">' + tx(x[1]) + "</button>"; }).join("") + '</div></div><p class="xs muted">' + tx("schriftHint") + "</p></div>" +
       '<hr class="trenn">' + syncFeld() + '<hr class="trenn">' +
       '<div class="feld"><span class="lab"' + alt("buzon") + ">" + tx("buzon") + '</span><p class="small muted">' + tx("buzonTxt") + "</p>" +
       '<label class="field">' + tx("token") + '<input id="f-token" type="password" autocomplete="off" spellcheck="false" value="' + esc(inboxCfg.token || "") + '"></label>' +
@@ -504,11 +572,6 @@
   document.addEventListener("click", function (ev) { if (lp.fired) { lp.fired = false; ev.preventDefault(); ev.stopPropagation(); } }, true);
 
   /* ================= Klicks ================= */
-  function pruefen() {
-    var s = ui.ses, inp = document.getElementById("f-resp"), f = frage(s.q[0]);
-    s.typed = inp ? inp.value : s.typed;
-    var r = L.pruefe(s.typed, f.back); s.res = { ok: r.ok, akzent: r.akzent }; s.shown = true; render();
-  }
   document.addEventListener("click", function (ev) {
     var el = ev.target.closest("[data-act]"); if (!el) return;
     var a = el.dataset.act, d = el.dataset, s = ui.ses;
@@ -526,11 +589,13 @@
     if (a === "terminar") { ui.ses = null; if (window.speechSynthesis) speechSynthesis.cancel(); render(); return; }
     if (a === "seguir") { sitzungMehr(); return; }
     if (a === "hablar") { var it = aktuell(); if (it) sprechen(frage(it).say); return; }
-    if (a === "mostrar") { s.shown = true; render(); if (modoVon(s.q[0].id) !== "vocab") sprechen(frage(s.q[0]).say); return; }
+    if (a === "mostrar") { s.shown = true; render(); sprechen(frage(s.q[0]).say); return; }
     if (a === "otra") { antworten(false); return; }
     if (a === "lose") { antworten(true); return; }
-    if (a === "comprobar") { pruefen(); return; }
-    if (a === "pick") { if (s.res) return; var f = frage(s.q[0]); s.res = { ok: d.o === f.ok, pick: d.o }; s.shown = true; render(); return; }
+    if (a === "schrift") { state.ajustes.schrift = d.s; save(); render(); return; }
+    if (a === "romaji") { state.ajustes.romaji = d.r === "true"; save(); render(); return; }
+    if (a === "kanjiFrei") { state.ajustes.kanjiFrei = true; save(); render(); return; }
+    if (a === "pick") { if (s.res) return; var f = frage(s.q[0]); s.res = { ok: d.o === f.ok, pick: d.o }; s.shown = true; render(); if (f.k === "kana" || f.k === "gram") sprechen(f.say); return; }
     if (a === "weiter") { antworten(s.res.ok); return; }
     // Briefkasten, Import
     if (a === "tokenSpeichern") { inboxCfg.token = document.getElementById("f-token").value.trim(); inboxSave(); toast(t("tGuardado")); inboxHolen(); return; }
@@ -562,13 +627,11 @@
     if (a === "konfliktDort") { var r = ui.modal.remote; ui.modal = null; syncApply(r); toast(t("tOtraVersion")); return; }
     if (a === "konfliktHier") { syncCfg.v = ui.modal.remote.v; syncCfg.hash = null; ui.modal = null; syncSaveCfg(); syncPush(); render(); return; }
   });
-  document.addEventListener("input", function (ev) { if (ev.target.id === "f-resp" && ui.ses) ui.ses.typed = ev.target.value; });
   document.addEventListener("change", function (ev) {
     if (ev.target.id === "f-server") { syncCfg.server = ev.target.value.trim().replace(/\/+$/, ""); syncSaveCfg(); }
   });
   document.addEventListener("keydown", function (ev) {
     if (ev.key === "Escape" && ui.modal && ui.modal.type !== "konflikt") { ui.modal = null; render(); }
-    if (ev.key === "Enter" && ev.target.id === "f-resp" && ui.ses && !ui.ses.res) { ev.preventDefault(); pruefen(); }
   });
 
   render();
@@ -576,5 +639,5 @@
   setTimeout(function () { syncPull(); inboxHolen(); }, 400);
   document.addEventListener("visibilitychange", function () { if (!document.hidden) { syncPull(); if (!ui.ses) render(); } });
   setInterval(function () { if (!document.hidden) syncPull(); }, 120000);
-  window.__espanol = { state: function () { return state; }, deck: DECK };   // nur für den Klick-Test (lesend)
+  window.__app = { state: function () { return state; }, deck: DECK, aktuelleAntwort: function () { var it = aktuell(); return it ? frage(it).ok : null; } };   // nur für den Klick-Test (lesend)
 })();
