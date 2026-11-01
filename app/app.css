@@ -147,6 +147,49 @@ ruby rt { font-size: 0.45em; color: var(--muted); font-weight: var(--w-n); }
 .modo.gesperrt { opacity: .75; }
 .modo.gesperrt .btn { flex: none; }
 
+/* Kana-Trainer */
+.trainer-wahl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3); }
+.trainer-btn { display: flex; align-items: center; gap: var(--s3); text-align: left; border: 1px solid var(--line); background: var(--surface-2); border-radius: var(--r-l); padding: var(--s3); color: var(--ink); min-height: 72px; }
+.trainer-btn > span:last-child { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.trainer-btn .tz { font-family: var(--font-ja); font-size: 34px; line-height: 1; color: var(--accent-ink); }
+.minibar { display: block; height: 4px; border-radius: 2px; background: var(--track); overflow: hidden; margin-top: 2px; }
+.minibar i { display: block; height: 100%; background: var(--accent); }
+.ktabelle { gap: var(--s2); }
+.kreihe { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: var(--s2); align-items: center; }
+.kgrid { display: grid; gap: 6px; }
+.kgrid.k5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.kgrid.k3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.kz { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 48px; border-radius: var(--r-m); border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); padding: 2px 0; }
+.kz span { font-family: var(--font-ja); font-size: var(--t-xl); line-height: 1.2; }
+.kz small { font-size: 10px; color: var(--muted); }
+.kz.arbeit { border-color: var(--accent-ink); }
+.kz.sicher { background: var(--soft); border-color: var(--soft); color: var(--soft-ink); }
+.kz.sicher small { color: var(--soft-ink); }
+.kz.leer { visibility: hidden; }
+.rkopf { width: 34px; height: 34px; border-radius: var(--r-pill); border: 1px solid var(--line); background: none; color: var(--muted); font-family: var(--font-ja); font-size: var(--t-m); padding: 0; }
+.rkopf.fertig { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.rkopf.jetzt { border-color: var(--accent-ink); color: var(--accent-ink); }
+.rkopf.leer { visibility: hidden; }
+.schritte { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--s1); }
+.schritte span { font-size: 10px; text-align: center; color: var(--muted); border-top: 3px solid var(--track); padding: var(--s1) 0 0; }
+.schritte span.fertig { border-color: var(--mid); }
+.schritte span.jetzt { border-color: var(--accent); color: var(--ink); font-weight: var(--w-b); }
+.tempo-sek { font-size: var(--t-xxl); font-weight: var(--w-b); color: var(--accent-ink); }
+.zeichenfeld { position: relative; width: min(100%, 300px); aspect-ratio: 1; align-self: center; border: 1px solid var(--line-2); border-radius: var(--r-l); background:
+  linear-gradient(var(--line), var(--line)) center / 100% 1px no-repeat, linear-gradient(var(--line), var(--line)) center / 1px 100% no-repeat, var(--field); touch-action: none; }
+.zeichenfeld canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }
+.strich { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.strich.vorlage { position: absolute; inset: 0; width: 100%; height: 100%; stroke: var(--line-2); stroke-width: 6; }
+.strich.loesung { position: absolute; inset: 0; width: 100%; height: 100%; stroke: var(--accent); stroke-width: 5; opacity: .85; }
+.strich.gross { width: 220px; height: 220px; stroke: var(--ink); stroke-width: 5; align-self: center; }
+.strich.anim path { stroke-dasharray: 1; stroke-dashoffset: 1; animation: strich-zeichnen .6s ease forwards; }
+@keyframes strich-zeichnen { to { stroke-dashoffset: 0; } }
+.ersatz { font-family: var(--font-ja); font-size: 120px; text-align: center; color: var(--line-2); }
+.zeichen.wort { font-size: 48px; }
+.inhalt.mitte-x { align-items: center; text-align: center; }
+.btn-row.zwei { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.lernkarte.trainer { min-height: 0; }
+
 /* Errores */
 .unter-h1 { margin-top: calc(-1 * var(--s2)); }
 .fehler { gap: 6px; }

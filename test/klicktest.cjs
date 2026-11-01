@@ -46,8 +46,45 @@ const SAFE_TOP = 47, SAFE_BOTTOM = 34;
     ok((await tabs(p)).join("|") === "今日|学習|統計|間違い", "Umschalter JA: Oberfläche auf Japanisch");
     await bild(p, "05-heute-ja.png", "Oberfläche Japanisch"); await p.click('.lang button:text-is("DE")');
 
+    /* ---------- Kana-Trainer ---------- */
+    await p.click('.tabbar button:text-is("Lernen")'); await bild(p, "06-lernen-trainer.png", "Lernen mit Kana-Trainer");
+    await p.click('.trainer-btn[data-s="h"]'); await p.waitForTimeout(400); await bild(p, "07-trainer-tabelle.png", "Kana-Trainer: Hiragana-Tabelle");
+    await p.click('.btn.primary[data-act="tLektion"]'); await p.waitForTimeout(2500);
+    await bild(p, "08-trainer-kennen.png", "Lektion: Kennenlernen (Strichfolge, nachzeichnen)");
+    const cv = await p.locator("#zeichnen").boundingBox();
+    await p.mouse.move(cv.x + cv.width * 0.3, cv.y + cv.height * 0.3); await p.mouse.down(); await p.mouse.move(cv.x + cv.width * 0.7, cv.y + cv.height * 0.3, { steps: 8 }); await p.mouse.up();
+    await p.mouse.move(cv.x + cv.width * 0.45, cv.y + cv.height * 0.15); await p.mouse.down(); await p.mouse.move(cv.x + cv.width * 0.4, cv.y + cv.height * 0.85, { steps: 8 }); await p.mouse.up();
+    await bild(p, "09-trainer-gezeichnet.png", "Lektion: nachgezeichnet");
+    let runden = 0, bildWahl = false, bildSchreiben = false;
+    while (runden++ < 80 && !(await p.locator(".fertig-t").count())) {
+      if (await p.locator('button[data-act="tVergleich"]').count()) {
+        const c2 = await p.locator("#zeichnen").boundingBox();
+        await p.mouse.move(c2.x + 60, c2.y + 80); await p.mouse.down(); await p.mouse.move(c2.x + 200, c2.y + 120, { steps: 6 }); await p.mouse.up();
+        await p.click('button[data-act="tVergleich"]'); await p.waitForTimeout(1500);
+        if (!bildSchreiben) { bildSchreiben = true; await bild(p, "0a-trainer-schreiben.png", "Lektion: aus dem Kopf schreiben + vergleichen"); }
+        await p.click('button[data-act="tSelbst"][data-ok="1"]');
+      } else if (await p.locator('button[data-act="tWeiter"]').count() && !(await p.locator(".opt").count())) await p.click('button[data-act="tWeiter"]');
+      else if (await p.locator(".opt:not([disabled])").count()) {
+        await richtigWaehlen(p);
+        if (!bildWahl) { bildWahl = true; await bild(p, "0b-trainer-erkennen.png", "Lektion: erkennen (mit Verwechslern)"); }
+        await p.click('button[data-act="tWeiter"]');
+      } else break;
+    }
+    ok(await p.locator(".fertig-t").count() === 1, "Kana-Trainer: Lektion あ-Reihe komplett durchlaufen (" + runden + " Schritte)");
+    await bild(p, "0c-trainer-ende.png", "Lektion geschafft");
+    ok((await p.evaluate(() => window.__app.state().kt.h)) === 1, "Kana-Trainer: nächste Reihe (か) freigeschaltet");
+    const sicher = await p.evaluate(() => Object.keys(window.__app.state().kt.m).filter((z) => window.__app.state().kt.m[z].ok).length);
+    ok(sicher >= 3, "Kana-Trainer: " + sicher + " Zeichen „sicher“ (richtig und schnell) → kommen ins Wiederholen (FSRS)");
+    await p.click('button[data-act="tTabelle"]'); await bild(p, "0d-trainer-tabelle-nachher.png", "Tabelle nach der ersten Lektion");
+    await p.click('button[data-act="tTempo"]'); await richtigWaehlen(p); await bild(p, "0e-trainer-tempo.png", "Tempo-Runde (60 s)");
+    await p.click('button[data-act="tZurueck"]'); await p.click('button[data-act="tZurueck"]');
+    await p.click('.trainer-btn[data-s="k"]'); await p.click('.kz[data-z="ア"]'); await p.waitForTimeout(2200); await bild(p, "0f-trainer-detail.png", "Katakana: Zeichen antippen → Strichfolge");
+    await p.click('button[data-act="tZurueck"]'); await p.click('button[data-act="tZurueck"]'); await p.click('.tabbar button:text-is("Heute")');
+
     /* ---------- Kana ---------- */
     await p.click('.tabbar button:text-is("Lernen")'); await p.click('.modo[data-m="kana"]');
+    // Die Kana aus dem Trainer zählen schon als „neu heute“ → für den Test 10 weitere holen
+    if (await p.locator(".fertig-t").count()) await p.click('button:text-is("Weiter: +10 neue")');
     await bild(p, "10-kana-frage.png", "Kana: Zeichen → Laut");
     const kz = await p.locator(".zeichen").innerText(); const ro = await richtigWaehlen(p);
     ok((await p.locator(".opt.richtig").count()) === 1, "Kana: „" + kz + "“ = " + ro + " wird als richtig erkannt");

@@ -57,7 +57,13 @@
       buzon: "Briefkasten vom Coach", buzonTxt: "Fehler und neue Wörter aus dem Projekt „Nihongo“ kommen hier an. Token einmal einfügen.", token: "Token",
       guardar: "Speichern", buscarAhora: "Jetzt abholen", importar: "Importieren", importarTxt: "Wenn der Coach dir einen JSON-Block gibt, hier einfügen.",
       licencias: "Lizenzen und Quellen", tGuardado: "Gespeichert.", tNuevos: "{n} neue vom Coach.", tNadaNuevo: "Nichts Neues vom Coach.", tJsonMalo: "Das ist kein gültiges JSON.",
-      tBuzon: "Briefkasten: {e}"
+      tBuzon: "Briefkasten: {e}",
+      trainer: "Kana-Trainer", trainerSub: "Alle Zeichen Reihe für Reihe: sehen, hören, schreiben, lesen.", hiragana: "Hiragana", katakana: "Katakana", sicherVon: "{n} von {t} sicher",
+      naechsteLektion: "Nächste Lektion: {g}", allesGelernt: "Alle Reihen gelernt – übe mit der Tempo-Runde.", tempo: "Tempo-Runde (60 s)", grund: "Grundzeichen", daku: "Mit ゛ und ゜", yoon: "Kombinationen",
+      schrittKennen: "Ansehen", schrittErkennen: "Erkennen", schrittHoeren: "Hören", schrittSchreiben: "Schreiben", schrittLesen: "Lesen",
+      nachzeichnen: "Fahr die Striche mit dem Finger nach.", ausDemKopf: "Schreib es aus dem Kopf.", vergleichen: "Vergleichen", passt: "Passt", nochmalZ: "Nochmal üben", loeschen: "Löschen", ansehen: "Strichfolge ansehen",
+      wortLesen: "Wie liest man das Wort?", ergebnis: "Lektion geschafft!", ergebnisTxt: "{r} von {n} richtig · Ø {s} s pro Antwort", neuSicher: "Jetzt sicher: {z}", tempoTxt: "{n} richtig in 60 Sekunden", langsam: "Noch langsam: {z}",
+      sekunden: "{n} s", wieHiragana: "Hiragana: {z}", aehnlich: "Nicht verwechseln mit {z}", tippZeichen: "Tipp auf ein Zeichen: hören und Strichfolge sehen. Tipp auf eine Reihe: Lektion starten.", striche: "{n} Striche", fertigZ: "Fertig", hFirst: "Tipp: erst Hiragana, dann Katakana."
     },
     ja: {
       tabHoy: "今日", tabAprender: "学習", tabStats: "統計", tabErrores: "間違い",
@@ -112,7 +118,13 @@
       buzon: "コーチからのポスト", buzonTxt: "プロジェクト「Nihongo」からの間違いや新しい言葉がここに届きます。トークンを一度入力してください。", token: "トークン",
       guardar: "保存", buscarAhora: "今すぐ受け取る", importar: "インポート", importarTxt: "コーチから JSON をもらったら、ここに貼り付けてください。",
       licencias: "ライセンスと出典", tGuardado: "保存しました。", tNuevos: "コーチから新しく{n}件。", tNadaNuevo: "コーチからの新着はありません。", tJsonMalo: "正しい JSON ではありません。",
-      tBuzon: "ポスト：{e}"
+      tBuzon: "ポスト：{e}",
+      trainer: "かなトレーナー", trainerSub: "行ごとに全部の字を：見る・聞く・書く・読む。", hiragana: "ひらがな", katakana: "カタカナ", sicherVon: "{t}字中{n}字 マスター",
+      naechsteLektion: "次のレッスン：{g}", allesGelernt: "全部の行を学びました。スピード練習をしましょう。", tempo: "スピード練習（60秒）", grund: "清音", daku: "濁音・半濁音", yoon: "拗音",
+      schrittKennen: "知る", schrittErkennen: "見分ける", schrittHoeren: "聞く", schrittSchreiben: "書く", schrittLesen: "読む",
+      nachzeichnen: "指でなぞってください。", ausDemKopf: "見ないで書いてください。", vergleichen: "比べる", passt: "できた", nochmalZ: "もう一度", loeschen: "消す", ansehen: "書き順を見る",
+      wortLesen: "この言葉の読み方は？", ergebnis: "レッスン完了！", ergebnisTxt: "{n}問中{r}問正解 · 平均{s}秒", neuSicher: "マスター：{z}", tempoTxt: "60秒で{n}問正解", langsam: "まだ遅い：{z}",
+      sekunden: "{n}秒", wieHiragana: "ひらがな：{z}", aehnlich: "{z}と間違えないで", tippZeichen: "字をタップ：音と書き順。行をタップ：レッスン開始。", striche: "{n}画", fertigZ: "完了", hFirst: "ヒント：先にひらがな、次にカタカナ。"
     }
   };
   var SPRACHEN = ["de", "ja"];

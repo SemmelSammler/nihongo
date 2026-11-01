@@ -24,7 +24,7 @@
   //   k:      { kartenId: [due, stability, difficulty, tage, reps, lapses, state, last, steps] }
   //   tage:   { "2026-11-01": { a: { modus: [abfragen, gewusst] }, n: { modus: neueHeute }, x: { modus: extraNeue }, ms, c, d } }
   //   errores, extra: aus dem Briefkasten / Import
-  function leer() { return { version: 1, ajustes: { nuevas: 10, schrift: "kana", romaji: true }, k: {}, tage: {}, errores: [], extra: [] }; }
+  function leer() { return { version: 1, ajustes: { nuevas: 10, schrift: "kana", romaji: true }, k: {}, tage: {}, errores: [], extra: [], kt: { h: 0, k: 0, m: {} } }; }
   var state = (function () { try { return JSON.parse(localStorage.getItem(STORE)); } catch (e) { return null; } })();
   var neu = !state;
   if (!state) state = DEMO ? clone(DEMO) : leer();
@@ -250,6 +250,172 @@
   }
   function autoSprechen() { var it = aktuell(); if (!it) return; var f = frage(it); if (f.k === "num" || (f.k === "kana" && !f.front)) sprechen(f.say); }
 
+  /* ================= Kana-Trainer: eigener Bereich zum schnellen Lernen aller Hiragana und Katakana =================
+     Lernwissenschaftlich aufgebaut:
+     · kleine Gruppen (eine Reihe = 3–5 Zeichen) statt aller 46 auf einmal (Arbeitsgedächtnis)
+     · jedes Zeichen sehen + hören + Strichfolge (doppelte Kodierung), Nachzeichnen mit dem Finger
+     · Abrufen statt Wiederlesen: erkennen, hören → Zeichen wählen, aus dem Kopf schreiben (Testeffekt)
+     · alte Reihen werden eingemischt, Verwechsler (さ/ち, シ/ツ) als falsche Antworten (Interleaving, Unterscheiden)
+     · Fehler kommen zwei Fragen später wieder (Abstand innerhalb der Lektion)
+     · echte Wörter nur aus schon gelernten Zeichen lesen (Übertragung, Motivation)
+     · „sicher“ erst bei richtig UND schnell (Flüssigkeit statt nur Wiedererkennen); dann übernimmt FSRS das Wiederholen */
+  var STRICHE = null;
+  function stricheLaden() { if (STRICHE) return; STRICHE = {}; fetch("deck/striche.json").then(function (r) { return r.json(); }).then(function (j) { STRICHE = j; if (ui.tr) render(); }, function () {}); }
+  var VOKAL = { a: 0, i: 1, u: 2, e: 3, o: 4 };
+  var GRUPPEN = [[0, 5, "a"], [5, 10, "k"], [10, 15, "s"], [15, 20, "t"], [20, 25, "n"], [25, 30, "h"], [30, 35, "m"], [35, 38, "y"], [38, 43, "r"], [43, 46, "w"],
+    [46, 51, "g"], [51, 56, "z"], [56, 61, "d"], [61, 66, "b"], [66, 71, "p"], [71, 83, "ky"], [83, 95, "ny"], [95, 104, "gy"]];
+  function kanaListe(sch) { var b = DECK.kana.filter(function (x) { return x.s === "h"; }), r = []; b.forEach(function (x, i) { var k = DECK.kana.filter(function (y) { return y.s === sch && y.id.slice(4) === x.id.slice(4); })[0]; if (k) r.push(k); }); return r; }
+  function gruppe(sch, gi) { var l = kanaListe(sch), g = GRUPPEN[gi]; return l.slice(g[0], g[1]); }
+  function kt() { if (!state.kt) state.kt = { h: 0, k: 0, m: {} }; return state.kt; }
+  function km(z) { var m = kt().m; if (!m[z]) m[z] = { r: 0, f: 0, s: 0, ok: false }; return m[z]; }   // r = richtig, f = falsch, s = schnell richtig, ok = sicher
+  function sicherN(sch) { return kanaListe(sch).filter(function (x) { return kt().m[x.z] && kt().m[x.z].ok; }).length; }
+  function gelernt(sch) { var g = kt()[sch] || 0, out = []; for (var i = 0; i < g; i++) out = out.concat(gruppe(sch, i)); return out; }
+  function zufallAus(arr, n) { return mischen(arr.slice()).slice(0, n); }
+  function zeigeHira(k) { return DECK.kana.filter(function (x) { return x.s === "h" && x.id.slice(4) === k.id.slice(4); })[0]; }
+  // Wörter, die nur aus schon gelernten Zeichen bestehen (Hiragana-Wörter bzw. Fremdwörter in Katakana)
+  function woerter(sch, zeichen) {
+    var set = {}; zeichen.forEach(function (x) { [...x.z].forEach(function (c) { set[c] = 1; }); });
+    return DECK.vocab.filter(function (v) { var r = v.r || ""; return r.length >= 2 && r.length <= 5 && [...r].every(function (c) { return set[c]; }) && (sch === "k" ? /[ァ-ヶ]/.test(r) : /^[ぁ-ゖ]+$/.test(r)); }).slice(0, 40);
+  }
+  function lektionStart(sch, gi) {
+    var neu = gruppe(sch, gi), alt = gelernt(sch).filter(function (x) { return neu.indexOf(x) < 0; }), q = [];
+    neu.forEach(function (x) { q.push({ typ: "kennen", k: x }); });
+    mischen(neu.concat(neu).concat(zufallAus(alt, Math.min(4, alt.length)))).forEach(function (x) { q.push({ typ: "wahl", k: x }); });
+    mischen(neu.concat(zufallAus(alt, Math.min(2, alt.length)))).forEach(function (x) { q.push({ typ: "hoeren", k: x }); });
+    neu.forEach(function (x) { q.push({ typ: "schreiben", k: x }); });
+    var w = woerter(sch, alt.concat(neu)).filter(function (v) { return neu.some(function (x) { return v.r.indexOf(x.z) >= 0; }); });
+    zufallAus(w, 4).forEach(function (v) { q.push({ typ: "wort", v: v, pool: w }); });
+    ui.tr = { s: sch, ph: "lektion", gi: gi, q: q, n: 0, r: 0, ms: 0, res: null, t0: Date.now(), striche: [], neuSicher: [] };
+    window.scrollTo(0, 0); render(); trainerSprechen();
+  }
+  function tempoStart(sch) {
+    var pool = gelernt(sch); if (!pool.length) return;
+    ui.tr = { s: sch, ph: "tempo", pool: pool, q: [{ typ: "wahl", k: pool[Math.floor(Math.random() * pool.length)] }], n: 0, r: 0, ende: Date.now() + 60000, res: null, t0: Date.now(), langsam: [] };
+    clearInterval(ui.trTick); ui.trTick = setInterval(function () { if (!ui.tr || ui.tr.ph !== "tempo") { clearInterval(ui.trTick); return; } if (Date.now() >= ui.tr.ende) { clearInterval(ui.trTick); ui.tr.ph = "tempoEnde"; } var el = document.getElementById("tempo-sek"); if (el && ui.tr.ph === "tempo") el.textContent = t("sekunden", { n: Math.max(0, Math.ceil((ui.tr.ende - Date.now()) / 1000)) }); else render(); }, 250);
+    render();
+  }
+  function frageAuf(it) {   // Antwortmöglichkeiten einmal festlegen
+    if (it.opts) return it;
+    if (it.typ === "wort") { it.ok = it.v.ro; it.opts = mischen([it.v.ro].concat(zufallAus(it.pool.filter(function (x) { return x.ro !== it.v.ro; }), 3).map(function (x) { return x.ro; }))); return it; }
+    var gleich = kanaListe(ui.tr.s).filter(function (x) { return x !== it.k; });
+    var aehn = (AEHNLICH.filter(function (g) { return g.indexOf(it.k.z) >= 0; })[0] || []).map(function (z) { return gleich.filter(function (x) { return x.z === z; })[0]; }).filter(Boolean);
+    var bekannt = gelernt(ui.tr.s).concat(ui.tr.gi != null ? gruppe(ui.tr.s, ui.tr.gi) : []).filter(function (x) { return x !== it.k; });
+    var falsch = aehn.concat(zufallAus(bekannt.length >= 3 ? bekannt : gleich, 6)).filter(function (x, i, a) { return a.indexOf(x) === i && x.ro !== it.k.ro; }).slice(0, 3);
+    var hoeren = it.typ === "hoeren";
+    it.ok = hoeren ? it.k.z : it.k.ro; it.opts = mischen([it.k].concat(falsch)).map(function (x) { return hoeren ? x.z : x.ro; });
+    return it;
+  }
+  function trainerSprechen() { var it = ui.tr && ui.tr.q[0]; if (!it) return; if (it.typ === "kennen" || it.typ === "hoeren" || it.typ === "schreiben") sprechen(it.k.z); }
+  function trainerAntwort(o) {
+    var tr = ui.tr, it = tr.q[0]; if (!it || tr.res) return;
+    var ok = o === it.ok, ms = Date.now() - tr.t0; tr.res = { ok: ok, pick: o }; tr.n++; if (ok) tr.r++; tr.ms += Math.min(ms, 10000);
+    if (it.k) {
+      var m = km(it.k.z);
+      if (ok) { m.r++; if (it.typ === "wahl" && ms < 3000) m.s++; } else { m.f++; m.s = Math.max(0, m.s - 1); }
+      if (tr.ph === "tempo" && (!ok || ms > 3000)) { m.ok = false; if (tr.langsam.indexOf(it.k.z) < 0) tr.langsam.push(it.k.z); }
+      if (!m.ok && ok && m.s >= 2 && tr.ph === "lektion") { m.ok = true; tr.neuSicher.push(it.k.z); if (!state.k[it.k.id]) L.buchen(state, { id: it.k.id, k: "kana", ok: true, neu: true, now: new Date(), ms: ms }); }
+      sprechen(it.k.z);
+    }
+    if (!ok && tr.ph === "lektion") tr.q.splice(Math.min(3, tr.q.length), 0, { typ: it.typ, k: it.k, v: it.v, pool: it.pool });
+    save(); render();
+  }
+  function trainerWeiter() {
+    var tr = ui.tr; tr.q.shift(); tr.res = null; tr.striche = []; tr.zeige = false; tr.t0 = Date.now();
+    if (tr.ph === "tempo") { if (Date.now() >= tr.ende) { tr.ph = "tempoEnde"; } else tr.q.push({ typ: "wahl", k: tr.pool[Math.floor(Math.random() * tr.pool.length)] }); }
+    if (tr.ph === "lektion" && !tr.q.length) { tr.ph = "ende"; kt()[tr.s] = Math.max(kt()[tr.s] || 0, tr.gi + 1); save(); }
+    render(); trainerSprechen();
+  }
+  function strichSvg(z, cls, animiert) {
+    var p = STRICHE && STRICHE[z]; if (!p) return '<div class="' + cls + ' ersatz" lang="ja">' + esc(z) + "</div>";
+    return '<svg class="' + cls + (animiert ? " anim" : "") + '" viewBox="0 0 109 109" aria-hidden="true">' + p.map(function (d, i) { return '<path pathLength="1" style="animation-delay:' + (i * 0.7) + 's" d="' + d + '"/>'; }).join("") + "</svg>";
+  }
+  function viewTrainerStart() {   // Kachel im Tab „Lernen“
+    if (!DECK.ok) return "";
+    return '<section class="card klein trainer-kachel"><div class="ttl"' + alt("trainer") + ">" + tx("trainer") + '</div><p class="xs muted">' + tx("trainerSub") + '</p><div class="trainer-wahl">' +
+      [["h", "hiragana", "あ"], ["k", "katakana", "ア"]].map(function (x) { var t2 = kanaListe(x[0]).length, n = sicherN(x[0]);
+        return '<button class="trainer-btn" data-act="trainer" data-s="' + x[0] + '"' + alt(x[1]) + '><span class="tz" lang="ja">' + x[2] + '</span><span><b>' + tx(x[1]) + '</b><span class="xs muted num">' + tx("sicherVon", { n: n, t: t2 }) + '</span><span class="minibar"><i style="width:' + Math.round(n / Math.max(t2, 1) * 100) + '%"></i></span></span></button>'; }).join("") + "</div></section>";
+  }
+  function viewTrainer() {
+    var tr = ui.tr, sch = tr.s, name = sch === "h" ? "hiragana" : "katakana";
+    var kopf = '<div class="ses-kopf"><button class="btn klein ghost" data-act="tZurueck"' + alt("volver") + ">" + tx("volver") + '</button><span class="small muted">' + tx("trainer") + " · " + tx(name) + "</span></div>";
+    if (tr.ph === "tabelle") {
+      var g = kt()[sch] || 0, liste = kanaListe(sch);
+      var zelle = function (k) { var m = kt().m[k.z], cls = m && m.ok ? "kz sicher" : m && (m.r || m.f) ? "kz arbeit" : "kz"; return '<button class="' + cls + '" data-act="tKana" data-z="' + esc(k.z) + '"><span lang="ja">' + esc(k.z) + "</span><small>" + esc(k.ro) + "</small></button>"; };
+      var leer = '<span class="kz leer"></span>';
+      var rkopf = function (gi, zs) { return '<button class="rkopf' + (gi < g ? " fertig" : gi === g ? " jetzt" : "") + '" data-act="tLektion" data-g="' + gi + '" lang="ja">' + esc(zs[0].z) + "</button>"; };
+      // Tabelle wie in Japan: Spalten a / i / u / e / o; ん bekommt eine eigene Zeile; Kombinationen: ya / yu / yo
+      var reihe = function (gi, spalten) {
+        var zs = gruppe(sch, gi), felder = new Array(spalten).fill(leer), extra = "";
+        zs.forEach(function (k, i) {
+          if (spalten === 3) { felder[i % 3] = zelle(k); return; }
+          if (k.ro === "n") { extra = '<div class="kreihe"><span class="rkopf leer"></span><div class="kgrid k5">' + zelle(k) + leer + leer + leer + leer + "</div></div>"; return; }
+          felder[VOKAL[k.ro.slice(-1)]] = zelle(k);
+        });
+        if (spalten === 3) { var html3 = ""; for (var j = 0; j < zs.length; j += 3) html3 += '<div class="kreihe">' + (j ? '<span class="rkopf leer"></span>' : rkopf(gi, zs)) + '<div class="kgrid k3">' + zs.slice(j, j + 3).map(zelle).join("") + "</div></div>"; return html3; }
+        return '<div class="kreihe">' + rkopf(gi, zs) + '<div class="kgrid k5">' + felder.join("") + "</div></div>" + extra;
+      };
+      var html = kopf + '<section class="card klein"><div class="row mitte"><div class="ttl">' + tx(name) + '</div><span class="small muted num">' + tx("sicherVon", { n: sicherN(sch), t: liste.length }) + "</span></div>" +
+        (g < GRUPPEN.length ? '<button class="btn primary" data-act="tLektion" data-g="' + g + '"' + alt("naechsteLektion", { g: gruppe(sch, g)[0].z }) + ">" + tx("naechsteLektion", { g: gruppe(sch, g).map(function (k) { return k.z; }).join(" ") }) + "</button>" : '<p class="small muted">' + tx("allesGelernt") + "</p>") +
+        (g > 0 ? '<button class="btn" data-act="tTempo"' + alt("tempo") + ">" + tx("tempo") + "</button>" : "") + '<p class="xs muted">' + tx("tippZeichen") + (sch === "k" && (kt().h || 0) < 10 ? " " + tx("hFirst") : "") + "</p></section>";
+      html += '<section class="card klein ktabelle"><div class="small muted">' + tx("grund") + "</div>"; for (var i = 0; i < 10; i++) html += reihe(i, 5);
+      html += '<div class="small muted">' + tx("daku") + "</div>"; for (i = 10; i < 15; i++) html += reihe(i, 5);
+      html += '<div class="small muted">' + tx("yoon") + "</div>"; for (i = 15; i < GRUPPEN.length; i++) html += reihe(i, 3);
+      return html + "</section>";
+    }
+    if (tr.ph === "detail") {
+      var k = tr.k, h = sch === "k" ? zeigeHira(k) : null, ae = (AEHNLICH.filter(function (gg) { return gg.indexOf(k.z) >= 0; })[0] || []).filter(function (z) { return z !== k.z; });
+      return kopf + '<section class="card lernkarte"><div class="row mitte"><span class="small muted">' + esc(k.ro) + (STRICHE && STRICHE[k.z] ? " · " + tx("striche", { n: STRICHE[k.z].length }) : "") + '</span><button class="iconbtn rund" data-act="tHoer" aria-label="' + tx("escuchar") + '">' + ICON.laut + '</button></div><div class="inhalt mitte-x">' + strichSvg(k.z, "strich gross", true) +
+        (h ? '<div class="small muted" lang="ja">' + tx("wieHiragana", { z: h.z }) + "</div>" : "") + (ae.length ? '<div class="small neg" lang="ja">' + tx("aehnlich", { z: ae.join(" ") }) + "</div>" : "") + "</div></section>" +
+        '<button class="btn" data-act="tAnim">' + tx("ansehen") + '</button><button class="btn" data-act="tTabelle">' + tx("volver") + "</button>";
+    }
+    if (tr.ph === "ende" || tr.ph === "tempoEnde") {
+      var schnitt = tr.n ? (tr.ms / tr.n / 1000).toFixed(1) : "–";
+      return kopf + '<section class="card fertig"><div class="fertig-t">' + tx(tr.ph === "ende" ? "ergebnis" : "tempo") + '</div><p class="muted">' + (tr.ph === "ende" ? tx("ergebnisTxt", { r: tr.r, n: tr.n, s: schnitt }) : tx("tempoTxt", { n: tr.r })) + "</p>" +
+        (tr.neuSicher && tr.neuSicher.length ? '<p class="ok-t" lang="ja">' + tx("neuSicher", { z: tr.neuSicher.join(" ") }) + "</p>" : "") + (tr.langsam && tr.langsam.length ? '<p class="neg" lang="ja">' + tx("langsam", { z: tr.langsam.join(" ") }) + "</p>" : "") + "</section>" +
+        ((kt()[sch] || 0) < GRUPPEN.length ? '<button class="btn primary" data-act="tLektion" data-g="' + (kt()[sch] || 0) + '">' + tx("naechsteLektion", { g: gruppe(sch, kt()[sch] || 0).map(function (x) { return x.z; }).join(" ") }) + "</button>" : "") +
+        '<button class="btn" data-act="tTempo">' + tx("tempo") + '</button><button class="btn" data-act="tTabelle">' + tx("volver") + "</button>";
+    }
+    // Lektion oder Tempo-Runde: aktuelle Aufgabe
+    var it = tr.q[0]; if (!it) { tr.ph = "ende"; return viewTrainer(); }
+    frageAuf(it);
+    var schritte = ["kennen", "wahl", "hoeren", "schreiben", "wort"], namen = ["schrittKennen", "schrittErkennen", "schrittHoeren", "schrittSchreiben", "schrittLesen"], si = schritte.indexOf(it.typ);
+    var leiste = tr.ph === "tempo" ? '<div class="row mitte"><span class="ttl">' + tx("tempo") + '</span><span class="tempo-sek num" id="tempo-sek">' + tx("sekunden", { n: Math.max(0, Math.ceil((tr.ende - Date.now()) / 1000)) }) + '</span></div><div class="small muted num">' + tr.r + " ✓</div>"
+      : '<div class="schritte">' + namen.map(function (n, i) { return '<span class="' + (i < si ? "fertig" : i === si ? "jetzt" : "") + '"' + alt(n) + ">" + tx(n) + "</span>"; }).join("") + "</div>";
+    var body = "", aktion = "";
+    if (it.typ === "kennen") {
+      var hh = sch === "k" ? zeigeHira(it.k) : null;
+      body = '<div class="row mitte"><span class="ttl num">' + esc(it.k.ro) + '</span><button class="iconbtn rund" data-act="tHoer" aria-label="' + tx("escuchar") + '">' + ICON.laut + "</button></div>" +
+        '<div class="zeichenfeld">' + strichSvg(it.k.z, "strich vorlage", true) + '<canvas id="zeichnen" width="600" height="600"></canvas></div><p class="xs muted">' + tx("nachzeichnen") + (hh ? " · " + tx("wieHiragana", { z: hh.z }) : "") + "</p>";
+      aktion = '<div class="btn-row zwei"><button class="btn" data-act="tLoeschen">' + tx("loeschen") + '</button><button class="btn primary" data-act="tWeiter">' + tx("siguiente") + "</button></div>";
+    } else if (it.typ === "schreiben") {
+      body = '<div class="row mitte"><span class="ttl num">' + esc(it.k.ro) + '</span><button class="iconbtn rund" data-act="tHoer" aria-label="' + tx("escuchar") + '">' + ICON.laut + "</button></div>" +
+        '<div class="zeichenfeld">' + (tr.zeige ? strichSvg(it.k.z, "strich loesung", true) : "") + '<canvas id="zeichnen" width="600" height="600"></canvas></div><p class="xs muted">' + tx("ausDemKopf") + "</p>";
+      aktion = tr.zeige ? '<div class="btn-row zwei"><button class="btn" data-act="tSelbst" data-ok="0">' + tx("nochmalZ") + '</button><button class="btn primary" data-act="tSelbst" data-ok="1">' + tx("passt") + "</button></div>"
+        : '<div class="btn-row zwei"><button class="btn" data-act="tLoeschen">' + tx("loeschen") + '</button><button class="btn primary" data-act="tVergleich">' + tx("vergleichen") + "</button></div>";
+    } else {
+      var frageTxt = it.typ === "wort" ? '<div class="small muted">' + tx("wortLesen") + '</div><div class="zeichen wort" lang="ja">' + esc(it.v.r) + "</div>" + (tr.res ? '<div class="small">' + esc(it.v.de) + "</div>" : "")
+        : it.typ === "hoeren" ? '<button class="hoeren" data-act="tHoer">' + ICON.lautGross + "<span>" + tx("escuchar") + "</span></button>" : '<div class="zeichen" lang="ja">' + esc(it.k.z) + "</div>";
+      body = frageTxt + '<div class="optionen' + (it.typ === "hoeren" ? " ja" : "") + '">' + it.opts.map(function (o) {
+        var cls = tr.res ? (o === it.ok ? "opt richtig" : tr.res.pick === o ? "opt falsch" : "opt") : "opt";
+        return '<button class="' + cls + '" lang="' + (it.typ === "hoeren" ? "ja" : "de") + '" data-act="tPick" data-o="' + esc(o) + '"' + (tr.res ? " disabled" : "") + ">" + esc(o) + "</button>";
+      }).join("") + "</div>";
+      if (tr.res) aktion = '<button class="btn" data-act="tWeiter">' + tx("siguiente") + "</button>";
+    }
+    return kopf + '<section class="card lernkarte trainer">' + leiste + '<div class="inhalt">' + body + "</div></section>" + aktion;
+  }
+  // Zeichnen mit Finger oder Maus; Striche bleiben beim Neuzeichnen erhalten
+  function leinwand() {
+    var c = document.getElementById("zeichnen"); if (!c || !ui.tr) return;
+    var ctx = c.getContext("2d"), farbe = getComputedStyle(document.body).color;
+    var male = function () { ctx.clearRect(0, 0, c.width, c.height); ctx.lineWidth = 26; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = farbe;
+      (ui.tr.striche || []).forEach(function (s) { ctx.beginPath(); s.forEach(function (p, i) { if (i) ctx.lineTo(p[0], p[1]); else ctx.moveTo(p[0], p[1]); }); if (s.length === 1) ctx.lineTo(s[0][0] + 0.1, s[0][1]); ctx.stroke(); }); };
+    male();
+    var pos = function (e) { var r = c.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * c.width, (e.clientY - r.top) / r.height * c.height]; }, aktiv = null;
+    c.onpointerdown = function (e) { e.preventDefault(); c.setPointerCapture(e.pointerId); aktiv = [pos(e)]; ui.tr.striche.push(aktiv); male(); };
+    c.onpointermove = function (e) { if (!aktiv) return; aktiv.push(pos(e)); male(); };
+    c.onpointerup = c.onpointercancel = function () { aktiv = null; };
+  }
+
   /* ================= Statistik (Bauplan 5) ================= */
   function racha() { return L.racha(state.tage, new Date()); }
   function retencion(k) { return L.retencion(state.tage, k, new Date()); }
@@ -293,12 +459,14 @@
       '<div class="week">' + woche + "</div></section>";
   }
   function viewAprender() {
+    if (ui.tr) return viewTrainer();
     if (ui.ses) return viewSesion();
     var z = hoyZahlen();
     return head("tabAprender") +
       '<section class="card klein"><div class="row mitte"><div class="stack" style="gap:var(--s1)"><span class="ttl"' + alt("nuevasPorDia") + ">" + tx("nuevasPorDia") + '</span><span class="small muted num">' + tx("hoyAprox", { n: z.min }) + "</span></div>" +
       '<div class="stepper"><button data-act="nuevas" data-d="-5" aria-label="' + tx("menosNuevas") + '">−</button><b class="num" id="nuevas">' + state.ajustes.nuevas + '</b><button data-act="nuevas" data-d="5" aria-label="' + tx("masNuevas") + '">+</button></div></div>' +
       '<p class="xs muted">' + tx("nuevasHint") + "</p></section>" +
+      viewTrainerStart() +
       '<div class="small muted"' + alt("queQuieres") + ">" + tx("queQuieres") + "</div>" +
       MODOS.map(function (m) {
         var x = z.pro[m.k];
@@ -538,6 +706,7 @@
     document.getElementById("app").innerHTML = html + modal() + (ui.toast ? '<div class="toast" role="status">' + esc(ui.toast) + "</div>" : "");
     Object.keys(vals).forEach(function (id) { var i = document.getElementById(id); if (i && i.type !== "file" && !i.disabled) i.value = vals[id]; });   // Eingaben überleben das Neuzeichnen
     if (focus && document.getElementById(focus)) document.getElementById(focus).focus();
+    leinwand();
   }
   var SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
   var ICON = {
@@ -576,13 +745,27 @@
     var el = ev.target.closest("[data-act]"); if (!el) return;
     var a = el.dataset.act, d = el.dataset, s = ui.ses;
     if (a === "zuHintergrund") { if (ev.target === el) { ui.modal = null; render(); } return; }
-    if (a === "view") { ui.view = d.v; ui.modal = null; if (d.v !== "aprender") ui.ses = null; window.scrollTo(0, 0); saveUi(); render(); if (d.v === "hoy") inboxHolen(); return; }
+    if (a === "view") { ui.view = d.v; ui.modal = null; if (d.v !== "aprender") { ui.ses = null; ui.tr = null; } window.scrollTo(0, 0); saveUi(); render(); if (d.v === "hoy") inboxHolen(); return; }
     if (a === "zu" || a === "los") { ui.modal = null; if (a === "los") save(); render(); return; }
     if (a === "ajustes") { ui.modal = { type: "ajustes" }; render(); return; }
     if (a === "licencias") { ui.modal = { type: "licencias" }; quellenLaden(); render(); return; }
     if (a === "lang") { I.set(d.l); saveUi(); render(); return; }
     if (a === "mode") { ui.mode = d.m; saveUi(); render(); return; }
     if (a === "nuevas") { state.ajustes.nuevas = Math.min(50, Math.max(0, state.ajustes.nuevas + Number(d.d))); save(); render(); return; }
+    // Kana-Trainer
+    if (a === "trainer") { stricheLaden(); ui.tr = { s: d.s, ph: "tabelle" }; window.scrollTo(0, 0); render(); return; }
+    if (a === "tZurueck") { if (ui.tr && ui.tr.ph !== "tabelle") { ui.tr = { s: ui.tr.s, ph: "tabelle" }; } else ui.tr = null; clearInterval(ui.trTick); render(); return; }
+    if (a === "tTabelle") { ui.tr = { s: ui.tr.s, ph: "tabelle" }; clearInterval(ui.trTick); render(); return; }
+    if (a === "tLektion") { stricheLaden(); lektionStart(ui.tr.s, Number(d.g)); return; }
+    if (a === "tTempo") { tempoStart(ui.tr.s); return; }
+    if (a === "tKana") { var kk = kanaListe(ui.tr.s).filter(function (x) { return x.z === d.z; })[0]; ui.tr = { s: ui.tr.s, ph: "detail", k: kk }; render(); sprechen(kk.z); return; }
+    if (a === "tHoer") { var ti = ui.tr.ph === "detail" ? ui.tr.k : ui.tr.q[0] && ui.tr.q[0].k; if (ti) sprechen(ti.z); return; }
+    if (a === "tAnim") { render(); return; }
+    if (a === "tPick") { trainerAntwort(d.o); return; }
+    if (a === "tWeiter") { trainerWeiter(); return; }
+    if (a === "tLoeschen") { ui.tr.striche = []; render(); return; }
+    if (a === "tVergleich") { ui.tr.zeige = true; render(); return; }
+    if (a === "tSelbst") { var it2 = ui.tr.q[0], mm = km(it2.k.z); if (d.ok === "1") mm.r++; else { mm.f++; ui.tr.q.splice(Math.min(3, ui.tr.q.length), 0, { typ: "schreiben", k: it2.k }); } save(); trainerWeiter(); return; }
     // Lernen
     if (a === "empezar") { sitzungStart(MODOS.map(function (m) { return m.k; })); return; }
     if (a === "modo") { sitzungStart([d.m]); return; }
@@ -639,5 +822,5 @@
   setTimeout(function () { syncPull(); inboxHolen(); }, 400);
   document.addEventListener("visibilitychange", function () { if (!document.hidden) { syncPull(); if (!ui.ses) render(); } });
   setInterval(function () { if (!document.hidden) syncPull(); }, 120000);
-  window.__app = { state: function () { return state; }, deck: DECK, aktuelleAntwort: function () { var it = aktuell(); return it ? frage(it).ok : null; } };   // nur für den Klick-Test (lesend)
+  window.__app = { state: function () { return state; }, deck: DECK, aktuelleAntwort: function () { if (ui.tr && ui.tr.q && ui.tr.q[0]) return frageAuf(ui.tr.q[0]).ok; var it = aktuell(); return it ? frage(it).ok : null; } };   // nur für den Klick-Test (lesend)
 })();

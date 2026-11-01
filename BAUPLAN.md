@@ -27,6 +27,16 @@ Japanisch für **Reise und Alltag**, ca. 15 Minuten pro Tag. Am Anfang vor allem
 | **Zahlen & Zeit** | Hören und wählen: Zahlen, Yen-Preise, Uhrzeiten, Daten, Zählwörter | automatisch |
 | **Aus dem Chat** | Fehler/Wörter vom Coach (Briefkasten), wie bei Español | selbst |
 
+## 3b. Kana-Trainer (eigener Bereich im Tab „Lernen“, je Hiragana und Katakana)
+Nicht wie Karteikarten, sondern Lektionen Reihe für Reihe (あ, か, さ …, dann ゛/゜, dann Kombinationen):
+1. **Ansehen**: Zeichen groß, Laut, Strichfolge animiert (KanjiVG), mit dem Finger nachzeichnen. Katakana zeigen das passende Hiragana daneben.
+2. **Erkennen**: Zeichen → Laut, neue Reihe doppelt, alte Reihen eingemischt, Verwechsler (さ/ち, シ/ツ) als falsche Antworten.
+3. **Hören**: Laut → Zeichen.
+4. **Schreiben**: aus dem Kopf zeichnen, dann mit der richtigen Strichfolge vergleichen und selbst bewerten.
+5. **Lesen**: echte Wörter, die nur aus schon gelernten Zeichen bestehen.
+Fehler kommen zwei Fragen später wieder. „Sicher“ = mindestens 2× richtig in unter 3 Sekunden → dann übernimmt FSRS (Modus Kana) das Wiederholen.
+**Tempo-Runde**: 60 Sekunden, alle gelernten Zeichen; Fehler oder > 3 s → Zeichen wieder „in Arbeit“. Tabelle zeigt grau / umrandet / grün.
+
 ## 4. Lerninhalte (offene Quellen, nichts erfinden)
 | Quelle | Wofür | Lizenz |
 |---|---|---|
@@ -35,6 +45,7 @@ Japanisch für **Reise und Alltag**, ca. 15 Minuten pro Tag. Am Anfang vor allem
 | Tatoeba (jpn–deu) + Wort-Indizes | Sätze | CC BY 2.0 FR |
 | FrequencyWords (OpenSubtitles) | Reihenfolge nach Häufigkeit | CC BY-SA 4.0 |
 | WanaKana | Kana ↔ Romaji | MIT |
+| KanjiVG | Strichfolgen der Kana (Trainer) | CC BY-SA 3.0 |
 | Wiktionary (Deutsch) über kaikki.org | prüft, welche deutsche Bedeutung zuerst kommt | CC BY-SA 4.0 |
 | kuromoji.js + IPADIC | Häufigkeit im Zusammenhang, Lesungen der Sätze, Prüfung der Verbformen | Apache 2.0 |
 
