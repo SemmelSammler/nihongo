@@ -1,0 +1,10 @@
+{
+  "name": "Nihongo",
+  "id": "nihongo",
+  "beschreibung": "Japanisch lernen, jeden Tag ein bisschen",
+  "server": "",
+  "farbe": "#3CC6A8",
+  "hintergrund": "#111315",
+  "bundleId": "de.nihongo.app",
+  "version": "0.1.0"
+}

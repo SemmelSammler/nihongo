@@ -1,0 +1,20 @@
+{
+  "name": "nihongo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "App-Vorlage: Web/iPhone (PWA), Windows, Mac, verschlüsselter Abgleich",
+  "scripts": {
+    "build": "node build.cjs",
+    "demo": "node build.cjs --demo",
+    "test": "node test/check.cjs",
+    "icons": "node tools/icons.cjs",
+    "tauri": "tauri"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  },
+  "dependencies": {
+    "ts-fsrs": "^5.4.2"
+  }
+}

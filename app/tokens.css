@@ -1,0 +1,65 @@
+/* Design-Regeln: ALLE Farben, Abstände, Radien und Schriften kommen von hier.
+   Neue Regeln benutzen nur diese Variablen, dann passt alles automatisch zusammen (hell und dunkel).
+   Dunkel = Prototyp D (docs/prototyp/D.dc.html). Hell = neu gestaltet, gleiche Rollen, Kontrast ≥ 4,5 : 1 für Text. */
+:root {
+  /* ---------- Farben (hell) ---------- */
+  --bg: #F5F6F7;          /* Seite */
+  --surface: #FFFFFF;     /* Karten */
+  --surface-2: #EDEFF1;   /* Knöpfe, Schienen */
+  --field: #FFFFFF;       /* Eingabefelder */
+  --line: #DCE0E4;        /* Rahmen */
+  --line-2: #C9CED4;      /* Rahmen von Eingabefeldern */
+  --ink: #15191C;         /* Text */
+  --muted: #5A636B;       /* Nebentext */
+  --accent: #3CC6A8;      /* Türkis: Flächen (Hauptknopf, Balken) */
+  --on-accent: #06231D;   /* Text auf Türkis */
+  --accent-ink: #0B7A64;  /* Türkis als Textfarbe */
+  --soft: #DDF4EE;        /* zarte Türkis-Fläche (aktiver Tab, Zähler) */
+  --soft-ink: #0A5C4C;    /* Text auf zarter Fläche */
+  --mid: #8FD8C6;         /* „aprendiendo“ in Balken */
+  --track: #D5DADF;       /* „nuevas“ / leere Schiene */
+  --neg: #B9472C;         /* Fehler, „Otra vez“ */
+  --neg-line: #EBC2B6;
+  --neg-bg: #FBEDE8;
+  --bar: color-mix(in srgb, #FFFFFF 92%, transparent);   /* Tab-Leiste */
+  --notch-bg: var(--bg);  /* Streifen unter der Uhrzeit */
+  --shade: rgb(0 0 0 / .35);
+  --tip-bg: #15191C; --tip-ink: #FFFFFF;   /* Übersetzungs-Blase beim Lang-Drücken */
+  color-scheme: light;
+
+  /* ---------- Abstände: nur diese Stufen benutzen ---------- */
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 20px; --s6: 24px; --s8: 32px;
+  --pad: 20px;            /* Seitenrand am Handy */
+  --tap: 44px;            /* kleinste Tippfläche (Apple) */
+  --btn-h: 52px;          /* Hauptknopf */
+
+  /* ---------- Radien ---------- */
+  --r-s: 8px; --r-m: 12px; --r-btn: 14px; --r-l: 16px; --r-xl: 20px; --r-xxl: 24px; --r-pill: 999px;
+
+  /* ---------- Schrift (Inter, liegt in app/fonts/) ---------- */
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --t-xs: 12px; --t-s: 13px; --t-ms: 14px; --t-m: 15px; --t-l: 17px; --t-xl: 20px; --t-stat: 26px; --t-xxl: 28px; --t-hero: 48px;
+  --w-n: 400; --w-m: 500; --w-b: 600;
+
+  /* ---------- Notch / Home-Leiste ----------
+     Echte Werte kommen vom iPhone (env). Im Klick-Test setzt Playwright --test-safe-top/--test-safe-bottom,
+     weil es keine echte Notch kennt. NIE an anderer Stelle überschreiben (Bauplan Abschnitt 9). */
+  --safe-top: max(env(safe-area-inset-top, 0px), var(--test-safe-top, 0px));
+  --safe-bottom: max(env(safe-area-inset-bottom, 0px), var(--test-safe-bottom, 0px));
+}
+
+/* Dunkel (Prototyp D): nach System, außer der Nutzer hat „Claro“ gewählt */
+@media (prefers-color-scheme: dark) { :root:not([data-mode="hell"]) {
+  --bg: #111315; --surface: #1B1E21; --surface-2: #23272B; --field: #111315; --line: #2E3338; --line-2: #3A4046;
+  --ink: #ECEEF0; --muted: #9AA2AA; --accent: #3CC6A8; --on-accent: #06231D; --accent-ink: #3CC6A8;
+  --soft: #173A33; --soft-ink: #9BE8D6; --mid: #1F6B5C; --track: #3A4046;
+  --neg: #F08A70; --neg-line: #5A3329; --neg-bg: #2A1A16;
+  --bar: color-mix(in srgb, #15181A 94%, transparent); --shade: rgb(0 0 0 / .55);
+  --tip-bg: #ECEEF0; --tip-ink: #111315; color-scheme: dark; } }
+:root[data-mode="dunkel"] {
+  --bg: #111315; --surface: #1B1E21; --surface-2: #23272B; --field: #111315; --line: #2E3338; --line-2: #3A4046;
+  --ink: #ECEEF0; --muted: #9AA2AA; --accent: #3CC6A8; --on-accent: #06231D; --accent-ink: #3CC6A8;
+  --soft: #173A33; --soft-ink: #9BE8D6; --mid: #1F6B5C; --track: #3A4046;
+  --neg: #F08A70; --neg-line: #5A3329; --neg-bg: #2A1A16;
+  --bar: color-mix(in srgb, #15181A 94%, transparent); --shade: rgb(0 0 0 / .55);
+  --tip-bg: #ECEEF0; --tip-ink: #111315; color-scheme: dark; }

@@ -1,0 +1,58 @@
+# Baut die Desktop-Apps: Windows (Installer .exe) und Mac (.dmg, für Intel und Apple-Chip).
+# Startet automatisch, wenn sich etwas in src-tauri/ ändert (z. B. neue Version in app.config.json → node build.cjs → pushen),
+# oder von Hand: GitHub → Actions → "Apps bauen" → "Run workflow".
+# Nicht bei jedem Push: Mac-Minuten zählen bei GitHub 10-fach (2.000 Freiminuten im Monat).
+# Ergebnis: unten im Lauf unter "Artifacts" als App-Windows und App-Mac herunterladen (90 Tage verfügbar).
+name: Apps bauen
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["src-tauri/**", ".github/workflows/apps-build.yml"]
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - run: npm ci
+      - run: node test/check.cjs
+      - name: App bauen
+        run: npx tauri build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: App-Windows
+          path: src-tauri/target/release/bundle/nsis/*.exe
+          if-no-files-found: error
+
+  mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - run: npm ci
+      - name: App bauen
+        run: npx tauri build --target universal-apple-darwin
+      - uses: actions/upload-artifact@v4
+        with:
+          name: App-Mac
+          path: src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
+          if-no-files-found: error

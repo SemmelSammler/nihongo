@@ -1,0 +1,11 @@
+# Wird alles aus dem Quellcode erzeugt
+node_modules/
+web/
+src-tauri/target/
+src-tauri/gen/
+test/bilder/
+
+# ECHTE, private Daten (Backups, Exporte, Liste privater Begriffe) – nie ins Repo
+daten/
+*.zip
+.DS_Store
