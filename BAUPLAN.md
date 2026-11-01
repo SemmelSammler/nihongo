@@ -45,3 +45,8 @@ Häufigkeit wird in allen japanischen Tatoeba-Sätzen gezählt (nicht aus Einzel
 - JMdict/KANJIDIC: von `https://www.edrdg.org/pub/Nihongo/` (Allowed domains: `www.edrdg.org`).
 - Farbe/Icon: eigenes Icon, damit man Español und Nihongo auf dem Home-Bildschirm unterscheidet (Varianten zeigen).
 - Speicher-Schlüssel: `nihongo.daten.v1`, `nihongo.sync` – nach erstem echten Einsatz nie mehr ändern.
+
+## 6. Cloudflare (angelegt 1.11.2026)
+- Pages-Projekt `nihongo` → **https://nihongo-b12.pages.dev** (mit GitHub verbunden, Produktion = `main`; jeder Push auf `main` geht live)
+- KV `nihongo-sync` (Bindung `SYNC_KV`), D1 `nihongo-inbox` (ID `434d7b64-d7a8-409e-8b1e-a6b44185e56f`, Bindung `INBOX_DB`, Tabelle aus `db/inbox.sql`), Secret `INBOX_TOKEN`
+- Briefkasten-Format wie bei Español: Feld `es` = richtige **japanische** Form, `de` = Deutsch, `wrong` = was Jason gesagt hat, `note` = kurzer deutscher Grund.

@@ -2,7 +2,7 @@
   "name": "Nihongo",
   "id": "nihongo",
   "beschreibung": "Japanisch lernen, jeden Tag ein bisschen",
-  "server": "",
+  "server": "https://nihongo-b12.pages.dev",
   "farbe": "#3CC6A8",
   "hintergrund": "#111315",
   "bundleId": "de.nihongo.app",
